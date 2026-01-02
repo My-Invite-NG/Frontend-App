@@ -14,5 +14,10 @@ export const hostApi = {
     async getRecentActivity() {
         const response = await client.get('/user/host/recent-activity');
         return response.data;
+    },
+
+    async getChart() {
+        const response = await client.get('/user/host/chart');
+        return response.data;
     }
 };

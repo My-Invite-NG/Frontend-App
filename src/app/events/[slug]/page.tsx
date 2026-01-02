@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { eventsApi } from "@/api/events";
+import EventMap from "@/components/ui/EventMap";
 
 export default function EventDetailsPage() {
   const { slug } = useParams();
@@ -220,11 +221,16 @@ export default function EventDetailsPage() {
                 {/* Location */}
                 <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
                     <h3 className="font-bold text-gray-900 mb-4">Location</h3>
-                    <div className="bg-gray-100 rounded-xl h-32 w-full mb-4 relative overflow-hidden flex items-center justify-center">
-                         <MapPin className="w-8 h-8 text-gray-400" />
+                    <div className="bg-gray-100 rounded-xl h-48 w-full mb-4 relative overflow-hidden flex items-center justify-center">
+                         <EventMap 
+                            lat={parseFloat(event.lat)} 
+                            lng={parseFloat(event.lng)} 
+                            locationName={event.location}
+                            className="w-full h-full"
+                        />
                     </div>
-                    <p className="font-semibold text-gray-900 text-sm">{event.location || 'Online'}</p>
-                    <div className="flex gap-4 mt-4">
+                    <p className="font-semibold text-gray-900 text-sm mb-4">{event.location || 'Online'}</p>
+                    <div className="flex gap-4">
                          <button className="text-violet-600 text-sm font-medium hover:underline flex items-center gap-1.5">
                             <Share2 className="w-4 h-4" /> Copy Address
                         </button>

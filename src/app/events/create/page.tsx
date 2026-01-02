@@ -1,21 +1,152 @@
 "use client";
 
-import { Upload, Calendar, MapPin, Plus, Trash2, Image as ImageIcon, CheckCircle2, ChevronRight, Hash, Clock, Globe } from "lucide-react";
+import { Upload, Calendar, MapPin, Plus, Trash2, Image as ImageIcon, CheckCircle2, ChevronRight, Hash, Clock, Globe, Loader2, X } from "lucide-react";
 import Image from "next/image";
-import { useState } from "react";
+import { useState, useMemo } from "react";
+import { eventsApi } from "@/api/events";
+import { useRouter } from "next/navigation";
+import PlaceAutocomplete from "@/components/ui/PlaceAutocomplete";
+import EventMap from "@/components/ui/EventMap";
+import { useJsApiLoader } from "@react-google-maps/api";
+import { GOOGLE_MAPS_LIBRARIES } from "@/lib/maps";
 
 export default function CreateEventPage() {
+  const router = useRouter();
+  const [loading, setLoading] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [error, setError] = useState('');
+
+  const { isLoaded: isLoadedGoogleMaps } = useJsApiLoader({
+    id: 'google-map-script',
+    googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || "",
+    libraries: GOOGLE_MAPS_LIBRARIES,
+  });
+
+  const [formData, setFormData] = useState({
+      title: '',
+      category: '',
+      description: '',
+      start_date: '',
+      start_time: '',
+      end_date: '',
+      end_time: '',
+      location: '',
+      lat: null as number | null,
+      lng: null as number | null,
+      image_url: '',
+      tags: [] as string[]
+  });
+
   const [tickets, setTickets] = useState([
-    { name: 'General Admission', price: '0', quantity: '100' }
+    { type: 'General Admission', price: '0', quantity: '100' }
   ]);
 
+  const [tagInput, setTagInput] = useState('');
+
+  const handleChange = (e: any) => {
+      setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  const handleAddressSelect = (address: string, lat: number, lng: number) => {
+      setFormData({ ...formData, location: address, lat, lng });
+  };
+
   const addTicket = () => {
-    setTickets([...tickets, { name: '', price: '', quantity: '' }]);
+    setTickets([...tickets, { type: '', price: '', quantity: '' }]);
   };
 
   const removeTicket = (index: number) => {
     setTickets(tickets.filter((_, i) => i !== index));
   };
+
+  const updateTicket = (index: number, field: string, value: string) => {
+      const newTickets = [...tickets];
+      // @ts-ignore
+      newTickets[index][field] = value;
+      setTickets(newTickets);
+  };
+
+  const handleImageUpload = async (e: any) => {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      setUploading(true);
+      try {
+          const res = await eventsApi.uploadImage(file);
+          setFormData({ ...formData, image_url: res.data.url });
+      } catch (err) {
+          console.error("Upload failed", err);
+          setError("Failed to upload image.");
+      } finally {
+          setUploading(false);
+      }
+  };
+
+  const handleAddTag = (e: any) => {
+      if ((e.key === 'Enter' || e.key === ',') && tagInput.trim()) {
+          e.preventDefault();
+          setFormData({ ...formData, tags: [...formData.tags, tagInput.trim()] });
+          setTagInput('');
+      }
+  };
+
+  const removeTag = (tagToRemove: string) => {
+      setFormData({ ...formData, tags: formData.tags.filter(tag => tag !== tagToRemove) });
+  };
+
+  const handleSubmit = async () => {
+      setLoading(true);
+      setError('');
+
+      try {
+          // Combine date and time
+          const startDateTime = `${formData.start_date} ${formData.start_time}`;
+          const endDateTime = formData.end_date && formData.end_time ? `${formData.end_date} ${formData.end_time}` : null;
+
+          const payload = {
+              title: formData.title,
+              category: formData.category,
+              description: formData.description,
+              start_date: startDateTime,
+              end_date: endDateTime, // Optional
+              location: formData.location,
+              lat: formData.lat,
+              lng: formData.lng,
+              image_url: formData.image_url,
+              tickets: tickets.map(t => ({
+                  type: t.type,
+                  price: parseFloat(t.price),
+                  quantity: parseInt(t.quantity)
+              }))
+          };
+
+          await eventsApi.create(payload);
+          router.push('/dashboard');
+      } catch (err: any) {
+          console.error("Create failed", err);
+          setError(err.response?.data?.message || "Failed to create event. Please check all fields.");
+      } finally {
+          setLoading(false);
+      }
+  };
+
+  // Calculate min start date (1 week from today)
+  const today = new Date();
+  today.setDate(today.getDate() + 7);
+  const minStartDate = today.toISOString().split('T')[0];
+
+  const isFormValid = useMemo(() => {
+    return (
+        formData.title.trim() !== '' &&
+        formData.category !== '' &&
+        formData.description.trim() !== '' &&
+        formData.start_date !== '' &&
+        formData.start_time !== '' &&
+        formData.location.trim() !== '' &&
+        tickets.length > 0 &&
+        tickets.every(t => t.type.trim() !== '' && t.quantity.trim() !== '')
+    );
+  }, [formData, tickets]);
 
   return (
     <div className="min-h-screen bg-gray-50 pb-20">
@@ -26,6 +157,12 @@ export default function CreateEventPage() {
             <h1 className="text-2xl font-bold text-gray-900">Create New Event</h1>
             <p className="text-gray-500 text-sm">Fill in the details below to publish your event.</p>
         </div>
+
+        {error && (
+            <div className="mb-6 p-4 bg-red-50 text-red-600 rounded-xl border border-red-100 text-sm font-medium">
+                {error}
+            </div>
+        )}
 
         <div className="space-y-6">
 
@@ -39,19 +176,27 @@ export default function CreateEventPage() {
                 <div className="space-y-5">
                     <div>
                         <label className="block text-sm font-semibold text-gray-900 mb-1.5">Event Title <span className="text-red-500">*</span></label>
-                        <input type="text" placeholder="e.g. Annual Tech Conference 2025" className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-violet-600/20 focus:border-violet-600 transition-all placeholder:text-gray-400 text-gray-900 text-sm" />
+                        <input name="title" value={formData.title} onChange={handleChange} type="text" placeholder="e.g. Annual Tech Conference 2025" className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-violet-600/20 focus:border-violet-600 transition-all placeholder:text-gray-400 text-gray-900 text-sm" />
+                    </div>
+
+                    <div>
+                        <label className="block text-sm font-semibold text-gray-900 mb-1.5">Description <span className="text-red-500">*</span></label>
+                        <textarea name="description" value={formData.description} onChange={handleChange} rows={4} placeholder="Describe your event..." className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-violet-600/20 focus:border-violet-600 transition-all placeholder:text-gray-400 text-gray-900 text-sm" />
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                          <div>
                             <label className="block text-sm font-semibold text-gray-900 mb-1.5">Category <span className="text-red-500">*</span></label>
                             <div className="relative">
-                                <select className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-violet-600/20 focus:border-violet-600 transition-all text-gray-900 text-sm appearance-none bg-white">
-                                    <option>Select Category</option>
-                                    <option>Music</option>
-                                    <option>Technology</option>
-                                    <option>Business</option>
-                                    <option>Food & Drink</option>
+                                <select name="category" value={formData.category} onChange={handleChange} className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-violet-600/20 focus:border-violet-600 transition-all text-gray-900 text-sm appearance-none bg-white">
+                                    <option value="">Select Category</option>
+                                    <option value="Music">Music</option>
+                                    <option value="Technology">Technology</option>
+                                    <option value="Business">Business</option>
+                                    <option value="Food & Drink">Food & Drink</option>
+                                    <option value="Arts">Arts</option>
+                                    <option value="Sports">Sports</option>
+                                    <option value="Wellness">Wellness</option>
                                 </select>
                                 <ChevronRight className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 rotate-90" />
                             </div>
@@ -60,11 +205,22 @@ export default function CreateEventPage() {
                             <label className="block text-sm font-semibold text-gray-900 mb-1.5">Tags</label>
                             <div className="flex items-center gap-2 px-3 py-2 rounded-xl border border-gray-200 focus-within:ring-2 focus-within:ring-violet-600/20 focus-within:border-violet-600 transition-all bg-white">
                                 <Hash className="w-4 h-4 text-gray-400" />
-                                <input type="text" placeholder="Add tags..." className="flex-1 focus:outline-none text-sm placeholder:text-gray-400" />
+                                <input 
+                                    type="text" 
+                                    placeholder="Add tags (Press Enter)..." 
+                                    className="flex-1 focus:outline-none text-sm placeholder:text-gray-400" 
+                                    value={tagInput}
+                                    onChange={(e) => setTagInput(e.target.value)}
+                                    onKeyDown={handleAddTag}
+                                />
                             </div>
-                            <div className="flex gap-2 mt-2">
-                                <span className="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded-md">Networking</span>
-                                <span className="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded-md">Business</span>
+                            <div className="flex flex-wrap gap-2 mt-2">
+                                {formData.tags.map(tag => (
+                                    <span key={tag} className="flex items-center gap-1 px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded-md">
+                                        {tag}
+                                        <button onClick={() => removeTag(tag)}><X className="w-3 h-3 hover:text-red-500"/></button>
+                                    </span>
+                                ))}
                             </div>
                         </div>
                     </div>
@@ -83,25 +239,25 @@ export default function CreateEventPage() {
                          <div>
                             <label className="block text-sm font-semibold text-gray-900 mb-1.5">Start Date <span className="text-red-500">*</span></label>
                             <div className="relative">
-                                <input type="date" className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-violet-600/20 focus:border-violet-600 transition-all text-gray-900 text-sm" />
+                                <input name="start_date" min={minStartDate} value={formData.start_date} onChange={handleChange} type="date" className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-violet-600/20 focus:border-violet-600 transition-all text-gray-900 text-sm" />
                             </div>
                         </div>
                         <div>
                             <label className="block text-sm font-semibold text-gray-900 mb-1.5">Start Time <span className="text-red-500">*</span></label>
                             <div className="relative">
-                                <input type="time" className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-violet-600/20 focus:border-violet-600 transition-all text-gray-900 text-sm" />
+                                <input name="start_time" value={formData.start_time} onChange={handleChange} type="time" className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-violet-600/20 focus:border-violet-600 transition-all text-gray-900 text-sm" />
                             </div>
                         </div>
                         <div>
                             <label className="block text-sm font-semibold text-gray-900 mb-1.5">End Date</label>
                             <div className="relative">
-                                <input type="date" className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-violet-600/20 focus:border-violet-600 transition-all text-gray-900 text-sm" />
+                                <input name="end_date" min={formData.start_date} value={formData.end_date} onChange={handleChange} type="date" className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-violet-600/20 focus:border-violet-600 transition-all text-gray-900 text-sm" />
                             </div>
                         </div>
                         <div>
                             <label className="block text-sm font-semibold text-gray-900 mb-1.5">End Time</label>
                             <div className="relative">
-                                <input type="time" className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-violet-600/20 focus:border-violet-600 transition-all text-gray-900 text-sm" />
+                                <input name="end_time" value={formData.end_time} onChange={handleChange} type="time" className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-violet-600/20 focus:border-violet-600 transition-all text-gray-900 text-sm" />
                             </div>
                         </div>
                     </div>
@@ -109,12 +265,25 @@ export default function CreateEventPage() {
                     <div>
                         <label className="block text-sm font-semibold text-gray-900 mb-1.5">Location <span className="text-red-500">*</span></label>
                         <div className="relative mb-3">
-                            <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                            <input type="text" placeholder="Search venue or address" className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-violet-600/20 focus:border-violet-600 transition-all text-gray-900 text-sm" />
+                            {isLoadedGoogleMaps ? (
+                                <PlaceAutocomplete 
+                                    onSelect={handleAddressSelect} 
+                                    defaultValue={formData.location}
+                                />
+                            ) : (
+                                <div className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-200 bg-gray-50 text-gray-400 text-sm flex items-center">
+                                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                                    Loading search...
+                                </div>
+                            )}
                         </div>
-                        {/* Map Placeholder */}
-                        <div className="w-full h-48 bg-gray-100 rounded-xl flex items-center justify-center text-gray-400 text-sm border border-gray-200">
-                             Map Preview
+                        {/* Map Preview */}
+                        <div className="mt-4">
+                             <EventMap 
+                                lat={formData.lat || undefined} 
+                                lng={formData.lng || undefined} 
+                                locationName={formData.location} 
+                            />
                         </div>
                     </div>
                 </div>
@@ -136,15 +305,15 @@ export default function CreateEventPage() {
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                                 <div>
                                     <label className="block text-xs font-semibold text-gray-700 mb-1">Ticket Name</label>
-                                    <input type="text" placeholder="e.g. VIP" defaultValue={ticket.name} className="w-full px-3 py-2 rounded-lg border border-gray-200 focus:outline-none focus:border-violet-600 text-sm bg-white" />
+                                    <input type="text" placeholder="e.g. VIP" value={ticket.type} onChange={(e) => updateTicket(index, 'type', e.target.value)} className="w-full px-3 py-2 rounded-lg border border-gray-200 focus:outline-none focus:border-violet-600 text-sm bg-white" />
                                 </div>
                                 <div>
                                     <label className="block text-xs font-semibold text-gray-700 mb-1">Price (₦)</label>
-                                    <input type="number" placeholder="0.00" defaultValue={ticket.price} className="w-full px-3 py-2 rounded-lg border border-gray-200 focus:outline-none focus:border-violet-600 text-sm bg-white" />
+                                    <input type="number" placeholder="0.00" value={ticket.price} onChange={(e) => updateTicket(index, 'price', e.target.value)} className="w-full px-3 py-2 rounded-lg border border-gray-200 focus:outline-none focus:border-violet-600 text-sm bg-white" />
                                 </div>
                                 <div>
                                     <label className="block text-xs font-semibold text-gray-700 mb-1">Quantity</label>
-                                    <input type="number" placeholder="100" defaultValue={ticket.quantity} className="w-full px-3 py-2 rounded-lg border border-gray-200 focus:outline-none focus:border-violet-600 text-sm bg-white" />
+                                    <input type="number" placeholder="100" value={ticket.quantity} onChange={(e) => updateTicket(index, 'quantity', e.target.value)} className="w-full px-3 py-2 rounded-lg border border-gray-200 focus:outline-none focus:border-violet-600 text-sm bg-white" />
                                 </div>
                             </div>
                         </div>
@@ -163,52 +332,65 @@ export default function CreateEventPage() {
                     <h2>Media</h2>
                 </div>
                 
-                <div className="border-2 border-dashed border-gray-200 rounded-2xl p-8 text-center hover:bg-gray-50 transition-colors cursor-pointer">
+                <div className="border-2 border-dashed border-gray-200 rounded-2xl p-8 text-center hover:bg-gray-50 transition-colors cursor-pointer relative">
+                    <input 
+                        type="file" 
+                        accept="image/*" 
+                        onChange={handleImageUpload} 
+                        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                        disabled={uploading}
+                    />
                     <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3 text-gray-400">
-                        <Upload className="w-6 h-6" />
+                        {uploading ? <Loader2 className="w-6 h-6 animate-spin" /> : <Upload className="w-6 h-6" />}
                     </div>
-                    <p className="font-medium text-gray-900">Click to upload or drag and drop</p>
+                    <p className="font-medium text-gray-900">{uploading ? 'Uploading...' : 'Click to upload or drag and drop'}</p>
                     <p className="text-xs text-gray-500 mt-1">SVG, PNG, JPG or GIF (max. 800x400px)</p>
                 </div>
 
-                <div className="flex gap-4 mt-6">
-                    {[1, 2, 3].map((i) => (
-                        <div key={i} className="w-24 h-24 rounded-lg bg-gray-100 border border-gray-200 relative overflow-hidden group">
-                           {/* Placeholder for uploaded preview */}
-                           <div className="absolute inset-0 flex items-center justify-center text-gray-300">
-                                <ImageIcon className="w-6 h-6" />
-                           </div>
-                        </div>
-                    ))}
-                    <button className="w-24 h-24 rounded-lg border border-gray-200 flex items-center justify-center text-gray-400 hover:bg-gray-50 hover:text-gray-600 transition-colors">
-                        <Plus className="w-6 h-6" />
-                    </button>
-                </div>
+                {formData.image_url && (
+                    <div className="mt-6 w-full h-48 rounded-xl overflow-hidden relative border border-gray-200">
+                        <img src={formData.image_url} alt="Event Preview" className="w-full h-full object-cover" />
+                        <button 
+                            onClick={() => setFormData({...formData, image_url: ''})}
+                            className="absolute top-2 right-2 p-1.5 bg-white/90 rounded-full text-red-600 hover:bg-white"
+                        >
+                            <Trash2 className="w-4 h-4" />
+                        </button>
+                    </div>
+                )}
             </div>
 
             {/* Preview Card Section */}
             <div>
                  <h2 className="text-lg font-bold text-gray-900 mb-4">Preview Event</h2>
                  <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden md:flex">
-                     <div className="md:w-1/3 bg-gray-800 h-48 md:h-auto relative">
-                        {/* Image Preview */}
-                        <div className="absolute inset-0 flex items-center justify-center text-white/30">Event Image</div>
+                     <div className="md:w-1/3 bg-gray-100 h-48 md:h-auto relative">
+                        {formData.image_url ? (
+                            <img src={formData.image_url} alt="Preview" className="w-full h-full object-cover" />
+                        ) : (
+                            <div className="absolute inset-0 flex items-center justify-center text-gray-400 font-medium">Event Image</div>
+                        )}
                      </div>
                      <div className="p-6 md:w-2/3">
                         <div className="flex justify-between items-start mb-2">
                              <div>
-                                <h3 className="font-bold text-gray-900 text-lg">Annual Tech Conference 2025</h3>
-                                <p className="text-violet-600 text-sm font-medium">Sat, Aug 12 • 9:00 AM</p>
+                                <h3 className="font-bold text-gray-900 text-lg">{formData.title || 'Event Title'}</h3>
+                                <p className="text-violet-600 text-sm font-medium">
+                                    {formData.start_date ? new Date(formData.start_date).toLocaleDateString() : 'Date'} • {formData.start_time || 'Time'}
+                                </p>
                             </div>
                             <span className="bg-green-50 text-green-700 px-2 py-1 rounded text-xs font-bold uppercase">Draft</span>
                         </div>
                         <div className="space-y-1 text-sm text-gray-500 mb-4">
-                            <p className="flex items-center gap-1.5"><MapPin className="w-3.5 h-3.5" /> Convention Center, San Francisco</p>
-                            <p className="flex items-center gap-1.5"><Globe className="w-3.5 h-3.5" /> Technology</p>
+                            <p className="flex items-center gap-1.5"><MapPin className="w-3.5 h-3.5" /> {formData.location || 'Location'}</p>
+                            <p className="flex items-center gap-1.5"><Globe className="w-3.5 h-3.5" /> {formData.category || 'Category'}</p>
                         </div>
                         <div className="flex items-center justify-between pt-4 border-t border-gray-100">
-                             <span className="font-bold text-gray-900">$299 - $599</span>
-                             <button className="text-sm font-medium text-gray-500 underline">Preview Full Page</button>
+                             <span className="font-bold text-gray-900">
+                                 {tickets.length > 0 
+                                     ? `₦${Math.min(...tickets.map(t => parseFloat(t.price) || 0))} - ₦${Math.max(...tickets.map(t => parseFloat(t.price) || 0))}`
+                                     : 'Price Range'}
+                             </span>
                         </div>
                      </div>
                  </div>
@@ -216,11 +398,15 @@ export default function CreateEventPage() {
 
             {/* Action Buttons */}
             <div className="flex items-center justify-end gap-3 pt-4">
-                 <button className="px-6 py-3 font-bold text-gray-600 bg-white border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors">
-                    Save Draft
+                 <button onClick={() => router.push('/dashboard')} className="px-6 py-3 font-bold text-gray-600 bg-white border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors">
+                    Cancel
                 </button>
-                <button className="px-6 py-3 font-bold text-white bg-violet-600 rounded-xl shadow-lg shadow-violet-200 hover:bg-violet-700 transition-all flex items-center gap-2">
-                    <CheckCircle2 className="w-4 h-4" />
+                <button 
+                    onClick={handleSubmit} 
+                    disabled={loading || !isFormValid}
+                    className="px-6 py-3 font-bold text-white bg-violet-600 rounded-xl shadow-lg shadow-violet-200 hover:bg-violet-700 transition-all flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none"
+                >
+                    {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />}
                     Publish Event
                 </button>
             </div>
