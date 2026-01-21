@@ -95,9 +95,25 @@ export const adminApi = {
     return response.data;
   },
   rejectPayout: async (id: string) => {
-    const response = await adminClient.post(
-      `/admin/finance/payouts/${id}/reject`,
-    );
+    const response = await adminClient.post(`/admin/finance/payouts/${id}/reject`);
+    return response.data;
+  },
+
+  // Support
+  getTickets: async (params?: any) => {
+    const response = await adminClient.get("/admin/support", { params });
+    return response.data;
+  },
+  getTicket: async (id: string) => {
+    const response = await adminClient.get(`/admin/support/${id}`);
+    return response.data;
+  },
+  replyTicket: async (id: string, data: any) => {
+    const response = await adminClient.post(`/admin/support/${id}/reply`, data);
+    return response.data;
+  },
+  updateTicketStatus: async (id: string, status: string) => {
+    const response = await adminClient.put(`/admin/support/${id}/status`, { status });
     return response.data;
   },
 };
