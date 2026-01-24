@@ -88,6 +88,10 @@ export const adminApi = {
     });
     return response.data;
   },
+  getTransaction: async (id: string) => {
+    const response = await adminClient.get(`/admin/finance/transactions/${id}`);
+    return response.data;
+  },
   processPayout: async (id: string) => {
     const response = await adminClient.post(
       `/admin/finance/payouts/${id}/process`,
@@ -132,6 +136,16 @@ export const adminApi = {
   // Settings - Security
   updatePassword: (data: any) =>
     adminClient.post("/admin/update-password", data),
+
+  // Trust Score
+  getTrustTiers: () => adminClient.get("/admin/trust-tiers"),
+  updateTrustTiers: (data: any) => adminClient.post("/admin/trust-tiers", data),
+  createTrustTier: (data: any) => adminClient.post("/admin/trust-tiers/create", data),
+  deleteTrustTier: (id: number) => adminClient.delete(`/admin/trust-tiers/${id}`),
+  getTrustScoreSettings: () => adminClient.get("/admin/trust-score"),
+  updateTrustScoreSettings: (data: any) => adminClient.post("/admin/trust-score", data),
+  createTrustScoreSetting: (data: any) => adminClient.post("/admin/trust-score/create", data),
+  deleteTrustScoreSetting: (key: string) => adminClient.delete(`/admin/trust-score/${key}`),
 
   // Settings - Config
   getConfig: () => adminClient.get("/admin/settings/config"),
