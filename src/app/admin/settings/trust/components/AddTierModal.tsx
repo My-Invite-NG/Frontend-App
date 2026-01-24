@@ -25,7 +25,7 @@ export default function AddTierModal({ isOpen, onClose, onSuccess }: AddTierModa
         try {
             setCreatingTier(true);
             const res = await adminApi.createTrustTier(newTier);
-            onSuccess(res.data);
+            onSuccess(res);
             onClose();
             setNewTier({ name: '', min_score: 0, max_score: 100, withdrawal_percent: 0, days_prior: 0 });
             toast.success("Tier created successfully");

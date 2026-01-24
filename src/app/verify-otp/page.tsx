@@ -88,10 +88,10 @@ const VerifyOtpContent = () => {
         setSuccess(true);
 
         // If the backend returns a new token (upgraded to 'User' scope), update cookies
-        if (response.data && response.data.access_token) {
-          Cookies.set("token", response.data.access_token, { expires: 30 });
-          if (response.data.user) {
-            Cookies.set("user", JSON.stringify(response.data.user), {
+        if (response && response.access_token) {
+          Cookies.set("token", response.access_token, { expires: 30 });
+          if (response.user) {
+            Cookies.set("user", JSON.stringify(response.user), {
               expires: 30,
             });
           }

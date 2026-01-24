@@ -5,7 +5,7 @@ import { useRouter, useParams } from "next/navigation";
 import Link from "next/link";
 import { adminApi } from "@/api/admin";
 import { formatCurrency } from "@/lib/utils";
-import { ArrowLeft, Loader2, Calendar, User, CreditCard, ExternalLink, CheckCircle, XCircle, Clock, FileText } from "lucide-react";
+import { ArrowLeft, Loader2, Calendar, User, CreditCard, ExternalLink, CheckCircle, XCircle, Clock, FileText, Ticket } from "lucide-react";
 
 export default function TransactionDetailsPage() {
   const router = useRouter();
@@ -58,6 +58,19 @@ export default function TransactionDetailsPage() {
       </div>
     );
   }
+  
+  const ticketGroups = transaction?.purchased_tickets?.reduce((acc: any, pt: any) => {
+      // Use ticket object if available, otherwise just use ID
+      const ticketId = pt.ticket_id;
+      const title = pt.ticket?.title || "Unknown Ticket";
+      const price = pt.ticket?.price || 0; // Or from pt.purchase_info if available?
+      
+      if (!acc[ticketId]) {
+          acc[ticketId] = { title, price, quantity: 0 };
+      }
+      acc[ticketId].quantity += 1;
+      return acc;
+  }, {});
 
   return (
     <div className="p-8 max-w-5xl mx-auto w-full">
@@ -91,7 +104,7 @@ export default function TransactionDetailsPage() {
                      ['pending', 'pending_confirmation'].includes(transaction.status) ? <Clock className="w-5 h-5" /> :
                      <XCircle className="w-5 h-5" />
                     }
-                    <span className="font-bold capitalize">{transaction.status.replace(/_/g, " ")}</span>
+                    <span className="font-bold capitalize">{transaction.status?.replace(/_/g, " ")}</span>
                 </div>
             </div>
         </div>
@@ -124,6 +137,30 @@ export default function TransactionDetailsPage() {
                         </div>
                     </div>
                 </div>
+
+                {/* Purchased Tickets Section */}
+                {ticketGroups && Object.keys(ticketGroups).length > 0 && (
+                    <div className="bg-card rounded-xl border border-border shadow-sm p-6">
+                        <h3 className="font-bold text-foreground mb-4 flex items-center gap-2">
+                            <Ticket className="w-5 h-5 text-primary" />
+                            Purchased Tickets
+                        </h3>
+                        <div className="space-y-3">
+                            {Object.entries(ticketGroups).map(([id, t]: [string, any]) => (
+                                <div key={id} className="flex items-center justify-between p-3 bg-muted/30 rounded-lg border border-border">
+                                    <div>
+                                        <p className="font-semibold text-foreground text-sm">{t.title}</p>
+                                        <p className="text-xs text-muted-foreground">Quantity: {t.quantity}</p>
+                                    </div>
+                                    <div className="text-right">
+                                        <p className="font-mono font-medium text-foreground">{formatCurrency(t.price * t.quantity)}</p>
+                                        {t.quantity > 1 && <p className="text-xs text-muted-foreground">{formatCurrency(t.price)} each</p>}
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                )}
 
                 {/* Additional Metadata / Gateway Info */}
                 {(transaction.metadata || transaction.gateway_response) && (

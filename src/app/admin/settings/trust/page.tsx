@@ -30,8 +30,8 @@ export default function TrustSettingsPage() {
                 adminApi.getTrustTiers(),
                 adminApi.getTrustScoreSettings()
             ]);
-            setTiers(tiersRes.data);
-            setSettings(settingsRes.data);
+            setTiers(tiersRes);
+            setSettings(settingsRes);
         } catch (error) {
             console.error(error);
             toast.error("Failed to load trust settings");

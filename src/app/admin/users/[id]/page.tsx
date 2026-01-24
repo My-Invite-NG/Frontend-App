@@ -30,8 +30,8 @@ export default function AdminUserDetailsPage({ params }: { params: Promise<{ id:
 
         // 1. Get User Profile & Stats
         const userRes = await adminApi.getUser(id);
-        setUser(userRes.data.user);
-        setStats(userRes.data.stats);
+        setUser(userRes.user);
+        setStats(userRes.stats);
 
         // 2. Get Events (Active)
         // We'll filter client side or make separate calls if volume is huge, for now client side filtering of a small fetch is okay, 
@@ -42,7 +42,7 @@ export default function AdminUserDetailsPage({ params }: { params: Promise<{ id:
         // Let's fetch generic events list for this user.
         const eventsRes = await adminApi.getUserEvents(id);
         // Simplification: Just showing recent events in two buckets based on date
-        const allEvents = eventsRes.data.data;
+        const allEvents = eventsRes.data;
         const now = new Date();
         
         setActiveEvents(allEvents.filter((e: any) => new Date(e.end_date || e.start_date) >= now));

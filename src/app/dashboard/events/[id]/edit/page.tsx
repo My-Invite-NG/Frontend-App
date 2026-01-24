@@ -49,22 +49,22 @@ export default function EditEventPage() {
               const data = await hostApi.getEventDetails(id);
               
               // Parse dates
-              const startDateObj = new Date(data.start_date);
-              const endDateObj = data.end_date ? new Date(data.end_date) : null;
+              const startDateObj = new Date(data.event.start_date);
+              const endDateObj = data.event.end_date ? new Date(data.event.end_date) : null;
 
               setFormData({
-                  title: data.title,
-                  category: data.category,
-                  description: data.description,
+                  title: data.event.title,
+                  category: data.event.category,
+                  description: data.event.description,
                   start_date: startDateObj.toISOString().split('T')[0],
                   start_time: startDateObj.toTimeString().slice(0, 5),
                   end_date: endDateObj ? endDateObj.toISOString().split('T')[0] : '',
                   end_time: endDateObj ? endDateObj.toTimeString().slice(0, 5) : '',
-                  location: data.location,
-                  lat: data.lat ? parseFloat(data.lat) : null,
-                  lng: data.lng ? parseFloat(data.lng) : null,
-                  image_url: data.image_url || '',
-                  tags: data.tags || [] 
+                  location: data.event.location,
+                  lat: data.event.lat ? data.event.lat : null,
+                  lng: data.event.lng ? data.event.lng : null,
+                  image_url: data.event.image_url || '',
+                  tags: data.event.tags || [] 
               });
 
               if (data.tickets && data.tickets.length > 0) {
@@ -116,7 +116,7 @@ export default function EditEventPage() {
       setUploading(true);
       try {
           const res = await eventsApi.uploadImage(file);
-          setFormData({ ...formData, image_url: res.data.url });
+          setFormData({ ...formData, image_url: res.file_url });
       } catch (err) {
           console.error("Upload failed", err);
           toastError("Failed to upload image");

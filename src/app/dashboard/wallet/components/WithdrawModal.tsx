@@ -53,7 +53,7 @@ export default function WithdrawModal({ isOpen, onClose, onSuccess, walletBalanc
                  setBankLoading(true);
                  try {
                      const res = await walletApi.getBanks();
-                     setBanks(res.data);
+                     setBanks(res);
                  } catch (err) {
                      setError("Failed to load banks");
                      return;
@@ -77,7 +77,7 @@ export default function WithdrawModal({ isOpen, onClose, onSuccess, walletBalanc
         setError("");
         try {
             const res = await walletApi.resolveAccount(selectedBank, accountNumber);
-            setAccountName(res.data.account_name);
+            setAccountName(res.account_name);
         } catch (err) {
             setAccountName("");
             setError("Could not verify account details");

@@ -39,8 +39,9 @@ export default function CategoriesPage() {
             // We need to add this method to adminApi or use a generic fetch
             // But since I can't edit adminApi easily right now without seeing it, I'll assume I add it later
             // For now, let's use a direct fetch implementation inside adminApi or fetcher
-             const { data } = await adminApi.getCategories();
-             setCategories(data);
+
+             const categories = await adminApi.getCategories();
+             setCategories(categories);
         } catch (err) {
             console.error(err);
             error("Failed to fetch categories");

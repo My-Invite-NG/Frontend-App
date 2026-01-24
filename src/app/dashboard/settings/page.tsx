@@ -21,7 +21,7 @@ export default function SettingsPage() {
              // ... existing fetch logic
             try {
                 const res = await userApi.getUser();
-                setUser(res.data);
+                setUser(res);
             } catch (error) {
                 console.error("Failed to fetch user", error);
             } finally {

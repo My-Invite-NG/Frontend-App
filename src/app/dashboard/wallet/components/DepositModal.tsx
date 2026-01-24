@@ -20,7 +20,7 @@ export default function DepositModal({ isOpen, onClose }: DepositModalProps) {
         try {
             const res = await walletApi.deposit(Number(amount));
             // Redirect to Paystack
-            window.location.href = res.data.payment_url;
+            window.location.href = res.payment_url;
         } catch (err: any) {
             error(err.response?.data?.message || 'Deposit failed');
             setProcessing(false);

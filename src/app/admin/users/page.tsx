@@ -35,8 +35,8 @@ export default function AdminUsersPage() {
       if (statusFilter) params.status = statusFilter;
 
       const response = await adminApi.getUsers(params);
-      setUsers(response.data.data);
-      setPagination(response.data);
+      setUsers(response.data);
+      setPagination(response);
     } catch (error) {
       console.error("Failed to fetch users", error);
     } finally {

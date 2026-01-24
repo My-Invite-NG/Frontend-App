@@ -49,8 +49,8 @@ export default function ConfigPage() {
     const fetchSettings = async () => {
         setLoading(true);
         try {
-            const { data } = await adminApi.getConfig();
-            setSettings(data);
+            const config = await adminApi.getConfig();
+            setSettings(config);
         } catch (err) {
             console.error(err);
             error("Failed to fetch settings");

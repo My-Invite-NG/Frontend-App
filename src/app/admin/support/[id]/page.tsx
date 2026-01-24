@@ -32,7 +32,7 @@ export default function AdminTicketDetailPage() {
         try {
             if (!ticketId) return;
             const res = await adminApi.getTicket(ticketId);
-            setTicket(res.data);
+            setTicket(res);
             setLoading(false);
             scrollToBottom();
         } catch (error) {

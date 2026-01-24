@@ -29,8 +29,8 @@ export default function AdminDashboardPage() {
              adminApi.getStats()
         ]);
         
-        setAdmin(profileRes.data.user);
-        setStats(statsRes.data);
+        setAdmin(profileRes);
+        setStats(statsRes);
       } catch (error) {
         console.error("Admin Load Failed", error);
         Cookies.remove("admin_token");

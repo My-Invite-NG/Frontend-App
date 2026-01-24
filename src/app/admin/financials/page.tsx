@@ -66,8 +66,8 @@ export default function AdminFinancePage() {
         adminApi.getFinanceStats(),
         adminApi.getTransactions({ page: 1, limit: 5 }), // Get top 5 recent
       ]);
-      setStats(statsRes.data);
-      setRecentTransactions(recentRes.data.data);
+      setStats(statsRes);
+      setRecentTransactions(recentRes.data);
     } catch (e) {
       console.error("Overview fetch failed", e);
     }
@@ -76,7 +76,7 @@ export default function AdminFinancePage() {
   const fetchPayouts = async () => {
     try {
       const res = await adminApi.getPayouts();
-      setPayouts(res.data.data);
+      setPayouts(res.data);
     } catch (e) {
       console.error("Payouts fetch failed", e);
     }
@@ -102,7 +102,7 @@ export default function AdminFinancePage() {
       }
 
       const txRes = await adminApi.getTransactions(txParams);
-      setTransactions(txRes.data.data);
+      setTransactions(txRes.data);
     } catch (error) {
       console.error("Failed to load transactions", error);
     }

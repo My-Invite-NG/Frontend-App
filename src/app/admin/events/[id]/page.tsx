@@ -30,7 +30,7 @@ export default function AdminEventDetailsPage() {
     if (!id) return;
     try {
       const data = await adminApi.getEvent(id);
-      setEvent(data.data);
+      setEvent(data);
     } catch (error) {
       console.error("Failed to fetch event", error);
       // router.push("/admin/events");

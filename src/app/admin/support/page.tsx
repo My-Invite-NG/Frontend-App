@@ -27,7 +27,10 @@ export default function AdminSupportPage() {
             if (searchTerm) params.search = searchTerm;
             
             const res = await adminApi.getTickets(params);
-            setTickets(res.data.data);
+            setTickets(res.data);
+            // setPagination(res); // If pagination was used, access res directly. Checking if setPagination exists in context.
+            // But grep showed setTickets(res.data.data).
+            // Let's assume pagination follows.
         } catch (error) {
             console.error(error);
         } finally {
@@ -176,7 +179,7 @@ export default function AdminSupportPage() {
                         <td className="px-6 py-4">
                           <div className="flex flex-col">
                             <span className="font-semibold text-foreground group-hover:text-primary transition-colors">
-                              #{ticket.id.substring(0, 8)}
+                              #{String(ticket.id).padStart(6, '0')}
                             </span>
                             <span className="text-muted-foreground truncate max-w-[200px]">
                               {ticket.subject}

@@ -31,8 +31,8 @@ export default function AdminEventsPage() {
       if (statusFilter) params.status = statusFilter;
 
       const response = await adminApi.getEvents(params);
-      setEvents(response.data.data);
-      setPagination(response.data);
+      setEvents(response.data);
+      setPagination(response);
     } catch (error) {
       console.error("Failed to fetch events", error);
     } finally {

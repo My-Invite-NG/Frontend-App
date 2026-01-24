@@ -49,7 +49,7 @@ export default function MyEventsPage() {
     const fetchEvents = async () => {
         try {
             const data = await hostApi.getEvents();
-            setEvents(data);
+            setEvents(data.data);
         } catch (error) {
             console.error("Failed to fetch host events", error);
         } finally {
@@ -70,7 +70,7 @@ export default function MyEventsPage() {
 
     const toggleDropdown = (e: MouseEvent, id: string) => {
         e.preventDefault();
-        e.nativeEvent.stopImmediatePropagation();
+        e.stopPropagation();
         setOpenDropdownId(openDropdownId === id ? null : id);
     };
 
@@ -177,7 +177,7 @@ export default function MyEventsPage() {
               {events.map((event) => (
                 <div
                   key={event.id}
-                  onClick={() => router.push(`/dashboard/events/${event.id}/edit`)}
+                  onClick={() => router.push(`/dashboard/events/${event.id}`)}
                   className="relative bg-card p-4 rounded-xl border border-border shadow-sm flex flex-col md:flex-row items-center gap-6 hover:border-primary/20 transition-colors cursor-pointer group"
                 >
                   <div className="w-full md:w-24 h-24 bg-muted rounded-lg shrink-0 overflow-hidden relative">
@@ -241,9 +241,10 @@ export default function MyEventsPage() {
                       <MoreVertical className="w-5 h-5" />
                     </button>
 
-                    {/* Dropdown Menu */}
                     {openDropdownId === event.id && (
-                      <div className="absolute top-full right-0 mt-2 w-48 bg-card rounded-xl shadow-xl border border-border z-50 overflow-hidden transform origin-top-right">
+                      <div 
+                        onClick={(e) => e.stopPropagation()}
+                        className="absolute top-full right-0 mt-2 w-48 bg-card rounded-xl shadow-xl border border-border z-50 overflow-hidden transform origin-top-right">
                         <div className="py-1">
                           <Link
                             href={`/events/${event.slug}`}

@@ -28,7 +28,7 @@ export default function WalletPage() {
     const fetchData = async () => {
         try {
             const userRes = await userApi.getUser();
-            setUser(userRes.data);
+            setUser(userRes);
             
             const historyRes = await userApi.getHistory({
                 status: statusFilter !== 'all' ? statusFilter : undefined,

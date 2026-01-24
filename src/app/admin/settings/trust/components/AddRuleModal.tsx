@@ -24,7 +24,7 @@ export default function AddRuleModal({ isOpen, onClose, onSuccess }: AddRuleModa
         try {
             setCreatingRule(true);
             const res = await adminApi.createTrustScoreSetting(newRule);
-            onSuccess(res.data);
+            onSuccess(res);
             onClose();
             setNewRule({ key: '', value: 0, description: '', type: 'gain' });
             toast.success("Rule created successfully");
