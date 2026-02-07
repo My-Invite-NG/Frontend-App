@@ -438,6 +438,11 @@ detect-libc@^2.0.3, detect-libc@^2.1.2:
   resolved "https://registry.npmjs.org/detect-libc/-/detect-libc-2.1.2.tgz"
   integrity sha512-Btj2BOOO83o3WyH59e8MgXsxEQVcarkUOpEYrubB0urwnN10yQ364rsiByU11nZlqWYZm05i/of7io4mzihBtQ==
 
+dojah-kyc-sdk-react@^0.0.5:
+  version "0.0.5"
+  resolved "https://registry.npmjs.org/dojah-kyc-sdk-react/-/dojah-kyc-sdk-react-0.0.5.tgz"
+  integrity sha512-cwogwwsKkisoDJ3Y7PC6RLhOn1cE0S5AwTax/oQ146mBMHVt0g8jiDpEbzC4LbuOd/iUS4lISqpMQ0z28VTQjA==
+
 dunder-proto@^1.0.1:
   version "1.0.1"
   resolved "https://registry.npmjs.org/dunder-proto/-/dunder-proto-1.0.1.tgz"

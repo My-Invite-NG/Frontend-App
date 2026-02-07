@@ -64,10 +64,10 @@ export default function DashboardPage() {
 
   const handleCreateEvent = (e: React.MouseEvent) => {
       e.preventDefault();
-      if (user?.kyc_status !== 'verified') {
+      if (user?.kyc_status === 'unverified') {
           setShowKycModal(true);
       } else {
-          router.push('/events/create');
+          router.push('/dashboard/events/create');
       }
   };
 

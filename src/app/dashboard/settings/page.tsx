@@ -48,7 +48,7 @@ export default function SettingsPage() {
 
           <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 overflow-hidden min-h-[600px]">
             {/* Tabs */}
-            <div className="flex border-b border-gray-100 dark:border-slate-800 overflow-x-auto bg-slate-50/50 dark:bg-slate-800/50 px-2 pt-2 gap-1">
+            <div className="flex border-b border-gray-100 dark:border-slate-800 overflow-x-auto overflow-y-hidden bg-slate-50/50 dark:bg-slate-800/50 px-2 pt-2 gap-1">
               <button
                 onClick={() => setActiveTab("profile")}
                 className={`flex-1 min-w-[120px] py-4 text-sm font-bold text-center transition-all bg-white dark:bg-slate-900 rounded-t-xl border-x border-t border-transparent relative top-[1px] ${activeTab === "profile" ? "text-violet-600 border-gray-200 dark:border-slate-800 !bg-white dark:!bg-slate-900 shadow-[0_-2px_10px_rgba(0,0,0,0.02)]" : "text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100/50 dark:hover:bg-slate-800/50 !bg-transparent border-transparent"}`}

@@ -22,7 +22,7 @@ export default function MyEventsPage() {
     const handleCreateEvent = (e: React.MouseEvent) => {
         e.preventDefault();
         const currentUser = authService.getCurrentUser();
-        if (currentUser?.kyc_status !== 'verified') {
+        if (currentUser?.kyc_status === 'unverified') {
             setShowKycModal(true);
         } else {
              router.push('/dashboard/events/create');
@@ -299,7 +299,7 @@ export default function MyEventsPage() {
                 href="/dashboard/events/create"
                 className="px-6 py-2 bg-primary text-primary-foreground font-medium rounded-lg hover:bg-primary/90 transition-colors"
               >
-                Create API Event
+                Host Your First Event
               </Link>
             </div>
           )}

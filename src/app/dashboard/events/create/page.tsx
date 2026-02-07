@@ -1,17 +1,44 @@
 "use client";
 
 import { Upload, Calendar, MapPin, Plus, Trash2, CheckCircle2, ChevronRight, Hash, Loader2, X, ArrowLeft } from "lucide-react";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { eventsApi } from "@/api/events";
+import { userApi } from "@/api/user";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useToast } from "@/context/ToastContext";
+import VerificationModal from "@/components/ui/VerificationModal";
 
 export default function CreateEventPage() {
   const router = useRouter();
   const { success, error: toastError } = useToast();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  
+  // User Verification Logic
+  const [user, setUser] = useState<any>(null);
+  const [fetchingUser, setFetchingUser] = useState(true);
+  const [showVerificationModal, setShowVerificationModal] = useState(false);
+
+  useEffect(() => {
+    const checkUser = async () => {
+      try {
+        const userData = await userApi.getUser();
+        setUser(userData);
+        
+        // Check KYC Status
+        if (!userData.kyc_status || userData.kyc_status === 'unverified') {
+           setShowVerificationModal(true);
+        }
+      } catch (err) {
+        console.error("Failed to fetch user for KYC check", err);
+      } finally {
+        setFetchingUser(false);
+      }
+    };
+    checkUser();
+  }, []);
+
 
   const [formData, setFormData] = useState({
     title: "",
@@ -119,6 +146,12 @@ export default function CreateEventPage() {
   };
 
   const handleSubmit = async () => {
+    // Determine if blocked
+    if (!user || (!user.kyc_status) || user.kyc_status === 'unverified') {
+        setShowVerificationModal(true);
+        return;
+    }
+
     setLoading(true);
     setError("");
 
@@ -184,9 +217,22 @@ export default function CreateEventPage() {
     );
   }, [formData, tickets, mediaFiles]);
 
+  if (fetchingUser) {
+      return (
+        <div className="min-h-screen bg-muted/10 flex items-center justify-center">
+            <Loader2 className="w-8 h-8 animate-spin text-primary" />
+        </div>
+      );
+  }
+
   return (
     <div className="min-h-screen bg-muted/10 pb-20">
-      <div className="max-w-4xl mx-auto px-4 md:px-0 py-8">
+      <VerificationModal 
+        isOpen={showVerificationModal} 
+        onClose={() => router.push('/dashboard/events')} // Redirect back on close/cancel
+      />
+      
+      <div className={`max-w-4xl mx-auto px-4 md:px-0 py-8 ${showVerificationModal ? 'blur-sm pointer-events-none' : ''}`}>
         <div className="mb-8">
            <Link href="/dashboard/events" className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground mb-4 transition-colors">
                 <ArrowLeft className="w-4 h-4 mr-1" /> Back to Dashboard

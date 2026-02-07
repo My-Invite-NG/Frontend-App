@@ -8,7 +8,7 @@ export interface User {
     role: string;
     avatar?: string;
     email_verified_at?: string;
-    kyc_status: 'verified' | 'pending' | 'unverified';
+    kyc_status: 'verified' | 'pending' | 'unverified' | 'tier1' | 'tier2';
     kyc_data?: any;
     trust_score: number;
     highest_historical_payout: number;
