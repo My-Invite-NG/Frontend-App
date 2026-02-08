@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { Card } from "@/components/ui/Card";
 import { hostApi } from "@/api/host";
 import { ShieldCheck, Info } from "lucide-react";
+import { Tooltip } from "@/components/ui/Tooltip";
 
 export default function TrustScoreWidget() {
   const [data, setData] = useState<any>(null);
@@ -43,9 +44,9 @@ export default function TrustScoreWidget() {
                 <div>
                     <h3 className="text-sm font-semibold text-violet-900 dark:text-violet-100 uppercase tracking-wider flex items-center gap-1">
                         Trust Score
-                        <div title="Your Trust Score determines your early withdrawal limits.">
+                        <Tooltip content="Score based on event success & refunds">
                             <Info className="w-3.5 h-3.5 text-violet-400 cursor-help" />
-                        </div>
+                        </Tooltip>
                     </h3>
                     <div className="flex items-baseline gap-1 mt-1">
                         <span className="text-4xl font-black text-violet-700 dark:text-violet-400">{score}</span>

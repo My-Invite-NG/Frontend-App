@@ -25,7 +25,13 @@ export default function SignInPage() {
     setError('');
 
     try {
-      await authService.login(formData.email, formData.password);
+      const response = await authService.login(formData.email, formData.password);
+      
+      if (response.UserDetails?.status === 'Unverified') {
+        router.push(`/verify-otp?email=${encodeURIComponent(formData.email)}&flow=login`);
+        return;
+      }
+
       router.push('/dashboard');
     } catch (err: any) {
       setError(err.response?.data?.message || 'Invalid credentials');

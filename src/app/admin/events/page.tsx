@@ -31,8 +31,14 @@ export default function AdminEventsPage() {
       if (statusFilter) params.status = statusFilter;
 
       const response = await adminApi.getEvents(params);
+      // EventResource Collection response structure: { data: [...], links: {...}, meta: {...} }
       setEvents(response.data);
-      setPagination(response);
+      if (response.meta) {
+          setPagination(response.meta);
+      } else {
+          // Fallback if not using Resource or different structure, though we refactored backend
+           setPagination(response);
+      }
     } catch (error) {
       console.error("Failed to fetch events", error);
     } finally {
@@ -224,22 +230,22 @@ export default function AdminEventsPage() {
       </div>
 
       {/* Simplified Pagination */}
-      {pagination && (pagination.prev_page_url || pagination.next_page_url) && (
+      {pagination && pagination.last_page > 1 && (
         <div className="flex items-center justify-center gap-4 mt-6">
           <button
-            disabled={!pagination.prev_page_url}
+            disabled={pagination.current_page <= 1}
             onClick={() => fetchEvents(pagination.current_page - 1)}
-            className="px-4 py-2 border border-input rounded-lg text-sm disabled:opacity-50 disabled:cursor-not-allowed hover:bg-accent text-foreground"
+            className="px-4 py-2 border border-input rounded-lg text-sm bg-background disabled:opacity-50 disabled:cursor-not-allowed hover:bg-accent text-foreground transition-colors"
           >
             Previous
           </button>
-          <span className="text-sm text-muted-foreground">
-            Page {pagination.current_page}
+          <span className="text-sm text-foreground">
+            Page {pagination.current_page} of {pagination.last_page}
           </span>
           <button
-            disabled={!pagination.next_page_url}
+            disabled={pagination.current_page >= pagination.last_page}
             onClick={() => fetchEvents(pagination.current_page + 1)}
-            className="px-4 py-2 border border-input rounded-lg text-sm disabled:opacity-50 disabled:cursor-not-allowed hover:bg-accent text-foreground"
+            className="px-4 py-2 border border-input rounded-lg text-sm bg-background disabled:opacity-50 disabled:cursor-not-allowed hover:bg-accent text-foreground transition-colors"
           >
             Next
           </button>

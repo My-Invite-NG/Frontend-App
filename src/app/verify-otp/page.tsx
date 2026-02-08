@@ -101,6 +101,15 @@ const VerifyOtpContent = () => {
           const flow = searchParams.get("flow");
           if (flow === "signup") {
             router.push("/auth/setup-profile");
+          } else if (flow === "login") {
+            const userStr = Cookies.get("user");
+            const user = userStr ? JSON.parse(userStr) : response.user;
+            
+            if (user && (!user.user_name || !user.display_name)) {
+                router.push("/auth/setup-profile");
+            } else {
+                router.push("/dashboard");
+            }
           } else {
             router.push(`/reset-password?token=${token}&email=${email}`);
           }

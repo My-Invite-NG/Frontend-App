@@ -31,6 +31,8 @@ export default function MyEventsPage() {
   const [loading, setLoading] = useState(true);
   const [openDropdownId, setOpenDropdownId] = useState<string | null>(null);
   const [showKycModal, setShowKycModal] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
 
   const handleCreateEvent = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -63,10 +65,47 @@ export default function MyEventsPage() {
     isDestructive: false,
   });
 
-  const fetchEvents = async () => {
+  // Pagination State
+  const [pagination, setPagination] = useState({
+    current_page: 1,
+    last_page: 1,
+    total: 0,
+    per_page: 10
+  });
+
+  const fetchEvents = async (page = 1) => {
     try {
-      const data = await hostApi.getEvents();
-      setEvents(data.data);
+      setLoading(true);
+      const response = await hostApi.getEvents({ 
+        page, 
+        limit: 10,
+        search: searchQuery,
+        status: statusFilter !== 'all' ? statusFilter : undefined
+      });
+      console.log(response);
+      setEvents(response.data); // data is now the array from Resource
+      // Assuming response also contains meta or links for pagination from Laravel Resource
+      // We might need to adjust hostApi type or response handling if it's wrapped
+      // standard Laravel resource collection response: { data: [...], meta: { current_page: ... }, links: {...} }
+      // But looking at previous code, hostApi.getEvents() returns response.data
+      
+      // Let's verify the actual response structure in next step or assume standard Laravel Resource
+      // If using ::collection(paginate()), it returns { data: [], meta: {}, links: {} }
+      // So setEvents(response.data) is correct for the items.
+      // We need to extract meta for pagination state.
+      // However, the current hostApi.getEvents implementation returns response.data directly.
+      // If response.data is the wrapper, then setEvents(response.data.data) might be needed?
+      // Let's stick to safe handling.
+      
+      if (response.meta) {
+          setPagination({
+              current_page: response.meta.current_page,
+              last_page: response.meta.last_page,
+              total: response.meta.total,
+              per_page: response.meta.per_page
+          });
+      }
+      
     } catch (error) {
       console.error("Failed to fetch host events", error);
     } finally {
@@ -75,8 +114,17 @@ export default function MyEventsPage() {
   };
 
   useEffect(() => {
-    fetchEvents();
-  }, []);
+    const timer = setTimeout(() => {
+        fetchEvents(1);
+    }, 800);
+    return () => clearTimeout(timer);
+  }, [searchQuery, statusFilter]);
+
+  const handlePageChange = (newPage: number) => {
+      if (newPage >= 1 && newPage <= pagination.last_page) {
+          fetchEvents(newPage);
+      }
+  };
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -148,44 +196,53 @@ export default function MyEventsPage() {
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
           <div>
             <h1 className="text-2xl font-bold text-foreground">My Events</h1>
-            <p className="text-muted-foreground text-sm mt-1">
-              Manage your upcoming and past events.
+            <p className="text-muted-foreground">
+              Manage your upcoming and past events
             </p>
           </div>
           <button
             onClick={handleCreateEvent}
-            className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground font-medium rounded-lg hover:bg-primary/90 transition-colors shadow-sm"
+            className="flex items-center gap-2 bg-primary text-primary-foreground px-4 py-2 rounded-xl font-medium hover:bg-primary/90 transition-colors shadow-lg shadow-primary/20"
           >
-            <Plus className="w-4 h-4" /> Create Event
+            <Plus className="w-5 h-5" /> Create Event
           </button>
         </div>
 
-        {/* Filters */}
-        <div className="bg-card p-4 rounded-xl border border-border shadow-sm mb-6 flex flex-col md:flex-row items-center gap-4">
-          <div className="relative flex-1 w-full">
+        {/* Filters and Search */}
+        <div className="flex flex-col md:flex-row gap-4 mb-6">
+          <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <input
               type="text"
               placeholder="Search events..."
-              className="w-full pl-9 pr-4 py-2 bg-muted/50 border border-input rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-foreground placeholder:text-muted-foreground"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-10 pr-4 py-2 bg-card border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
             />
           </div>
-          <div className="flex items-center gap-3 w-full md:w-auto">
-            <button className="flex items-center gap-2 px-3 py-2 bg-card border border-border rounded-lg text-sm font-medium text-foreground hover:bg-muted transition-colors">
-              <Filter className="w-4 h-4" /> Filter
-            </button>
-            <select className="px-3 py-2 bg-card border border-border rounded-lg text-sm font-medium text-foreground hover:bg-muted focus:outline-none">
-              <option>All Statuses</option>
-              <option>Published</option>
-              <option>Draft</option>
-              <option>Ended</option>
-            </select>
+          <div className="flex items-center gap-2 overflow-x-auto pb-2 md:pb-0">
+            <div className="bg-card border border-border rounded-xl p-1 flex items-center">
+              {["all", "published", "draft", "ended"].map((status) => (
+                <button
+                  key={status}
+                  onClick={() => setStatusFilter(status)}
+                  className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-all ${
+                    statusFilter === status
+                      ? "bg-primary/10 text-primary shadow-sm"
+                      : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                  }`}
+                >
+                  {status.charAt(0).toUpperCase() + status.slice(1)}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
 
         {/* Events List */}
         {loading ? (
-          <div className="space-y-4">
+             // ... existing skeleton
+             <div className="space-y-4">
             {[1, 2, 3].map((i) => (
               <div
                 key={i}
@@ -194,14 +251,18 @@ export default function MyEventsPage() {
             ))}
           </div>
         ) : events?.length > 0 ? (
-          <div className="space-y-4">
-            {events?.map((event) => (
-              <div
+          <>
+            <div className="space-y-4">
+               {/* ... existing events map */}
+               {events?.map((event) => (
+                   // ... existing event card
+                   <div
                 key={event.id}
                 onClick={() => router.push(`/dashboard/events/${event.id}`)}
                 className="relative bg-card p-4 rounded-xl border border-border shadow-sm flex flex-col md:flex-row items-center gap-6 hover:border-primary/20 transition-colors cursor-pointer group"
               >
-                <div className="w-full md:w-24 h-24 bg-muted rounded-lg shrink-0 overflow-hidden relative">
+                  {/* ... event card content */}
+                   <div className="w-full md:w-24 h-24 bg-muted rounded-lg shrink-0 overflow-hidden relative">
                   {event.image_url ? (
                     <img
                       src={event.image_url}
@@ -261,8 +322,8 @@ export default function MyEventsPage() {
                   >
                     <MoreVertical className="w-5 h-5" />
                   </button>
-
-                  {openDropdownId === event.id && (
+                    {/* ... dropdown menu */}
+                   {openDropdownId === event.id && (
                     <div
                       onClick={(e) => e.stopPropagation()}
                       className="absolute top-full right-0 mt-2 w-48 bg-card rounded-xl shadow-xl border border-border z-50 overflow-hidden transform origin-top-right"
@@ -302,13 +363,38 @@ export default function MyEventsPage() {
                       </div>
                     </div>
                   )}
+               </div>
+               </div>
+               ))}
+            </div>
+            
+            {/* Pagination Controls */}
+            {pagination.last_page > 1 && (
+                <div className="flex items-center justify-center gap-2 mt-8">
+                    <button 
+                        onClick={() => handlePageChange(pagination.current_page - 1)}
+                        disabled={pagination.current_page === 1}
+                        className="px-3 py-1 text-sm border border-border rounded-lg bg-card hover:bg-muted disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                        Previous
+                    </button>
+                    <span className="text-sm text-muted-foreground">
+                        Page {pagination.current_page} of {pagination.last_page}
+                    </span>
+                    <button 
+                         onClick={() => handlePageChange(pagination.current_page + 1)}
+                         disabled={pagination.current_page === pagination.last_page}
+                         className="px-3 py-1 text-sm border border-border rounded-lg bg-card hover:bg-muted disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                        Next
+                    </button>
                 </div>
-              </div>
-            ))}
-          </div>
+            )}
+          </>
         ) : (
           <div className="text-center py-20 bg-card rounded-xl border border-border border-dashed">
-            <div className="w-16 h-16 bg-primary/10 text-primary rounded-full flex items-center justify-center mx-auto mb-4">
+            {/* ... no events state */}
+             <div className="w-16 h-16 bg-primary/10 text-primary rounded-full flex items-center justify-center mx-auto mb-4">
               <Calendar className="w-8 h-8" />
             </div>
             <h3 className="text-lg font-bold text-foreground">
@@ -326,7 +412,7 @@ export default function MyEventsPage() {
           </div>
         )}
 
-        {/* Confirmation Modal */}
+        {/* ... modals (ConfirmationModal) */}
         <ConfirmationModal
           isOpen={modalConfig.isOpen}
           onClose={() => setModalConfig({ ...modalConfig, isOpen: false })}

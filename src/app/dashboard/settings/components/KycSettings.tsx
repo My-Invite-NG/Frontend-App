@@ -32,24 +32,21 @@ export default function KycSettings({ user, onUserUpdate }: KycSettingsProps) {
   };
 
   const handleDojahResponse = async (type: string, data: any) => {
-    console.log("Dojah Response:", type, data);
-
     if (type === "success") {
       setVerifying(true);
       try {
         const verificationData = await kycApi.handleVerificationSuccess({
-          reference_id: data.reference_id || data.referenceId || "manual_ref",
+          reference_id: data.reference_id || data.referenceId || "",
           status: "success",
           ...data,
         });
-
-        console.log(verificationData);
 
         if (verificationData.status) {
           const updatedUser = verificationData.data;
           onUserUpdate(updatedUser);
           authService.updateUser(updatedUser);
         }
+        window.location.reload();
       } catch (error) {
         toast.error(
           "Error Processing Verification Data. Please wait 30 minutes!",
