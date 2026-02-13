@@ -18,8 +18,9 @@ function EventsContent() {
   const [loading, setLoading] = useState(true);
   const [total, setTotal] = useState(0);
   const [view, setView] = useState<"grid" | "list">("grid");
+  const [page, setPage] = useState(1);
 
-  const fetchEvents = async () => {
+  const fetchEvents = async (pageToFetch = 1) => {
     setLoading(true);
     try {
       const params = {
@@ -28,13 +29,18 @@ function EventsContent() {
         date: searchParams.get("date") || "",
         location: searchParams.get("location") || "",
         sort: searchParams.get("sort") || "date_asc",
-        page: 1, // TODO: Add pagination support
+        page: pageToFetch,
       };
 
       const data = await eventsApi.getAll(params);
-      // API returns paginated response: { current_page, data: [], total, ... }
-      setEvents(data.data || []);
-      setTotal(data.total || 0);
+      // API returns paginated response: { data: [], links: {}, meta: {} }
+      if (pageToFetch === 1) {
+        setEvents(data.data || []);
+      } else {
+        setEvents((prev) => [...prev, ...data.data]);
+      }
+      setTotal(data.meta?.total || 0);
+      setPage(pageToFetch);
     } catch (error) {
       console.error("Failed to fetch events", error);
     } finally {
@@ -43,8 +49,12 @@ function EventsContent() {
   };
 
   useEffect(() => {
-    fetchEvents();
+    fetchEvents(1);
   }, [searchParams]);
+
+  const handleLoadMore = () => {
+    fetchEvents(page + 1);
+  };
 
   return (
     <main className="pt-24 pb-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -64,7 +74,7 @@ function EventsContent() {
       </div>
 
       {/* Events Grid/List */}
-      {loading ? (
+      {loading && page === 1 ? (
         <div
           className={`grid gap-8 ${
             view === "grid"
@@ -120,8 +130,12 @@ function EventsContent() {
       {/* Load More */}
       {events.length > 0 && events.length < total && (
         <div className="mt-16 text-center">
-          <button className="px-8 py-3 bg-white border border-gray-200 text-gray-600 font-bold rounded-lg hover:bg-violet-50 hover:text-violet-600 hover:border-violet-200 transition-all shadow-sm">
-            Load More Events
+          <button 
+            onClick={handleLoadMore}
+            disabled={loading}
+            className="px-8 py-3 bg-white border border-gray-200 text-gray-600 font-bold rounded-lg hover:bg-violet-50 hover:text-violet-600 hover:border-violet-200 transition-all shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {loading ? 'Loading...' : 'Load More Events'}
           </button>
         </div>
       )}

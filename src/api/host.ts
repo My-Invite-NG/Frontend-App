@@ -1,6 +1,6 @@
 import client from './client';
 import { ApiResponse, PaginatedResponse } from '@/types/api';
-import { Event, HostStats, HostEventDetails } from '@/types/models';
+import { Event, HostStats, HostEventDetails, PurchasedTicket } from '@/types/models';
 
 export const hostApi = {
     async getEvents(params?: any): Promise<PaginatedResponse<Event>> {
@@ -10,8 +10,15 @@ export const hostApi = {
 
     async getEventDetails(id: string): Promise<HostEventDetails> {
         const response = await client.get<ApiResponse<HostEventDetails>>(`/user/host/events/${id}`);
+        console.log(response);
         return response.data.data;
     },
+
+    async getAttendees(id: string, params?: any): Promise<PaginatedResponse<PurchasedTicket>> {
+        const response = await client.get<ApiResponse<PaginatedResponse<PurchasedTicket>>>(`/user/host/events/${id}/attendees`, { params });
+        return response.data.data;
+    },
+
 
     async getStats(): Promise<HostStats> {
         const response = await client.get<ApiResponse<HostStats>>('/user/host/stats');

@@ -50,14 +50,18 @@ export default function AdminFinancePage() {
 
   // Data States
   const [payouts, setPayouts] = useState<any[]>([]);
+  const [payoutsPagination, setPayoutsPagination] = useState<any>(null);
   const [transactions, setTransactions] = useState<any[]>([]);
+  const [transactionsPagination, setTransactionsPagination] = useState<any>(null);
   const [recentTransactions, setRecentTransactions] = useState<any[]>([]); // For Overview
 
   // Filters
   const [txSearch, setTxSearch] = useState("");
   const [txType, setTxType] = useState("");
   const [txStatus, setTxStatus] = useState("");
-  const [txSort, setTxSort] = useState("created_at:desc");
+  const [txSort, setTxSort] = useState("created_at:desc"); 
+  const [txPage, setTxPage] = useState(1);
+  const [payoutsPage, setPayoutsPage] = useState(1);
 
   // Load Stats & Recent only once or on demand
   const fetchOverview = async () => {
@@ -73,16 +77,18 @@ export default function AdminFinancePage() {
     }
   };
 
-  const fetchPayouts = async () => {
+  const fetchPayouts = async (page = 1) => {
     try {
-      const res = await adminApi.getPayouts();
+      const res = await adminApi.getPayouts({ page });
       setPayouts(res.data);
+      setPayoutsPagination(res);
+      setPayoutsPage(page);
     } catch (e) {
       console.error("Payouts fetch failed", e);
     }
   };
 
-  const fetchTransactions = async () => {
+  const fetchTransactions = async (page = 1) => {
     try {
       const token = Cookies.get("admin_token");
       if (!token) {
@@ -92,7 +98,7 @@ export default function AdminFinancePage() {
 
       // Prepare filter params for transactions
       const [sortBy, sortOrder] = txSort.split(":");
-      const txParams: any = {};
+      const txParams: any = { page };
       if (txSearch) txParams.search = txSearch;
       if (txType) txParams.type = txType;
       if (txStatus) txParams.status = txStatus;
@@ -102,7 +108,10 @@ export default function AdminFinancePage() {
       }
 
       const txRes = await adminApi.getTransactions(txParams);
+      // txRes is PaginatedResponse { data, links, meta }
       setTransactions(txRes.data);
+      setTransactionsPagination(txRes);
+      setTxPage(page);
     } catch (error) {
       console.error("Failed to load transactions", error);
     }
@@ -119,9 +128,9 @@ export default function AdminFinancePage() {
   // Effect for Transaction Filters
   useEffect(() => {
     if (activeTab === "transactions") {
-      fetchTransactions();
+      fetchTransactions(1);
     }
-  }, [txType, txStatus, txSort]); // Removed txSearch to keep it manual
+  }, [txType, txStatus, txSort, activeTab]); // Reset to page 1 on filter change
 
   // Effect for Payouts (refresh when tab active if needed, or just initial is fine)
   useEffect(() => {
@@ -138,7 +147,7 @@ export default function AdminFinancePage() {
       // Actually fetchTransactions depends on state, so calling it directly works best AFTER state update
       // But strict mode might batch. Let's trust the effect hook if we added txSearch dependency, but we didn't.
       // So we should manually call fetch.
-      setTimeout(() => fetchTransactions(), 100);
+      setTimeout(() => fetchTransactions(1), 100);
     }
   };
 
@@ -360,6 +369,31 @@ export default function AdminFinancePage() {
                 </tbody>
               </table>
             )}
+            
+            {/* Payouts Pagination */}
+            {payoutsPagination && payoutsPagination.meta.last_page > 1 && (
+                <div className="flex items-center justify-between px-6 py-4 border-t border-border bg-muted/20">
+                    <div className="text-xs text-muted-foreground">
+                        Page {payoutsPagination.meta.current_page} of {payoutsPagination.meta.last_page}
+                    </div>
+                    <div className="flex gap-2">
+                            <button 
+                            onClick={() => fetchPayouts(payoutsPagination.meta.current_page - 1)}
+                            disabled={!payoutsPagination.links.prev}
+                            className="px-3 py-1 text-xs border border-border rounded bg-background disabled:opacity-50"
+                        >
+                            Previous
+                        </button>
+                        <button 
+                            onClick={() => fetchPayouts(payoutsPagination.meta.current_page + 1)}
+                            disabled={!payoutsPagination.links.next}
+                            className="px-3 py-1 text-xs border border-border rounded bg-background disabled:opacity-50"
+                        >
+                            Next
+                        </button>
+                    </div>
+                </div>
+            )}
 
             {/* Confirmation Modal */}
             <ConfirmationModal
@@ -389,13 +423,13 @@ export default function AdminFinancePage() {
                   className="pl-9 pr-4 py-2 border border-input rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ring bg-background placeholder-muted-foreground text-foreground shadow-sm w-64"
                   value={txSearch}
                   onChange={(e) => setTxSearch(e.target.value)}
-                  onKeyDown={(e) => e.key === "Enter" && fetchTransactions()}
+                  onKeyDown={(e) => e.key === "Enter" && fetchTransactions(1)}
                 />
               </div>
 
               <div className="flex items-center gap-3">
                 <button
-                  onClick={fetchTransactions}
+                  onClick={() => fetchTransactions(1)}
                   className="p-2 text-muted-foreground hover:text-primary hover:bg-primary/10 rounded-lg transition-colors"
                   title="Apply Filters"
                 >
@@ -533,6 +567,30 @@ export default function AdminFinancePage() {
                 ))}
               </tbody>
             </table>
+             {/* Transactions Pagination */}
+             {transactionsPagination && transactionsPagination.meta.last_page > 1 && (
+                <div className="flex items-center justify-between px-6 py-4 border-t border-border bg-muted/20">
+                    <div className="text-xs text-muted-foreground">
+                        Page {transactionsPagination.meta.current_page} of {transactionsPagination.meta.last_page}
+                    </div>
+                    <div className="flex gap-2">
+                         <button 
+                            onClick={() => fetchTransactions(transactionsPagination.meta.current_page - 1)}
+                            disabled={!transactionsPagination.links.prev}
+                            className="px-3 py-1 text-xs border border-border rounded bg-background disabled:opacity-50"
+                        >
+                            Previous
+                        </button>
+                        <button 
+                            onClick={() => fetchTransactions(transactionsPagination.meta.current_page + 1)}
+                            disabled={!transactionsPagination.links.next}
+                            className="px-3 py-1 text-xs border border-border rounded bg-background disabled:opacity-50"
+                        >
+                            Next
+                        </button>
+                    </div>
+                </div>
+            )}
           </div>
         )}
 

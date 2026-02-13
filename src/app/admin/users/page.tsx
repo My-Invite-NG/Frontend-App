@@ -114,6 +114,7 @@ export default function AdminUsersPage() {
               <th className="px-6 py-4 font-bold">Activity</th>
               <th className="px-6 py-4 font-bold">Joined</th>
               <th className="px-6 py-4 font-bold">Status</th>
+              <th className="px-6 py-4 font-bold">KYC Status</th>
               <th className="px-6 py-4 font-bold text-right">Actions</th>
             </tr>
           </thead>
@@ -162,21 +163,32 @@ export default function AdminUsersPage() {
                 <td className="px-6 py-4">
                   <span
                     className={`px-2.5 py-1 rounded-full text-xs font-bold tracking-wide border ${
-                      user.account_status === "Verified"
+                      user.status === "Verified"
                         ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/20"
                         : ""
                     } ${
-                      user.account_status === "Unverified"
+                      user.status === "Unverified"
                         ? "bg-muted text-muted-foreground border-border"
                         : ""
                     } ${
-                      ["Locked", "Blocked"].includes(user.account_status)
+                      ["Locked", "Blocked"].includes(user.status)
                         ? "bg-destructive/10 text-destructive border-destructive/20"
                         : ""
                     }`}
                   >
-                    {user.account_status}
+                    {user.status}
                   </span>
+                </td>
+                <td className="px-6 py-4">
+                  <div className="flex flex-col gap-1">
+                    <span className="text-sm font-medium text-foreground flex items-center gap-2">
+                      <span className="w-1.5 h-1.5 rounded-full bg-primary"></span>
+                      {user.kyc_status.charAt(0).toUpperCase() +
+                        user.kyc_status
+                          .slice(1)
+                          .replace(/([a-zA-Z])([0-9])/g, "$1 $2")}
+                    </span>
+                  </div>
                 </td>
                 <td className="px-6 py-4 text-right">
                   <Link
@@ -208,21 +220,22 @@ export default function AdminUsersPage() {
       </div>
 
       {/* Simplified Pagination */}
-      {pagination && (pagination.prev_page_url || pagination.next_page_url) && (
+      {/* Simplified Pagination */}
+      {pagination && pagination.meta.last_page > 1 && (
         <div className="flex items-center justify-center gap-4 mt-6">
           <button
-            disabled={!pagination.prev_page_url}
-            onClick={() => fetchUsers(pagination.current_page - 1)}
+            disabled={!pagination.links.prev}
+            onClick={() => fetchUsers(pagination.meta.current_page - 1)}
             className="px-4 py-2 border border-input rounded-lg text-sm disabled:opacity-50 disabled:cursor-not-allowed hover:bg-accent text-foreground"
           >
             Previous
           </button>
           <span className="text-sm text-muted-foreground">
-            Page {pagination.current_page}
+            Page {pagination.meta.current_page} of {pagination.meta.last_page}
           </span>
           <button
-            disabled={!pagination.next_page_url}
-            onClick={() => fetchUsers(pagination.current_page + 1)}
+            disabled={!pagination.links.next}
+            onClick={() => fetchUsers(pagination.meta.current_page + 1)}
             className="px-4 py-2 border border-input rounded-lg text-sm disabled:opacity-50 disabled:cursor-not-allowed hover:bg-accent text-foreground"
           >
             Next

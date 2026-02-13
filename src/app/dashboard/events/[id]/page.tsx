@@ -34,6 +34,18 @@ export default function EventDetailsPage() {
 
   const eventId = params.id as string;
 
+  // Attendees Pagination State
+  const [attendeesList, setAttendeesList] = useState<any[]>([]);
+  const [attendeesLoading, setAttendeesLoading] = useState(false);
+  const [attendeesPagination, setAttendeesPagination] = useState({
+      current_page: 1,
+      last_page: 1,
+      total: 0,
+      per_page: 20
+  });
+
+  const [attendeesPage, setAttendeesPage] = useState(1);
+
   useEffect(() => {
     if (eventId) fetchDetails();
   }, [eventId]);
@@ -51,16 +63,65 @@ export default function EventDetailsPage() {
     }
   };
 
+  const fetchAttendees = async (page = 1) => {
+      if (!eventId) return;
+      setAttendeesLoading(true);
+      try {
+          // hostApi.getAttendees returns PaginatedResponse<PurchasedTicket>
+          // PurchasedTicketResource structure: { ticket_id, purchase_info: { buyer_name, ... }, ... }
+          // We need to map it to the structure expected by the table if different
+          // Table expects: name, email, ticket_type, price, date
+          // PurchasedTicketResource has: ticket.title, ticket.price, created_at
+          
+          const res = await hostApi.getAttendees(eventId, { 
+              page, 
+              limit: 20,
+              search: searchQuery 
+          });
+          
+          // Map to table format
+          const formatted = res.data.map((item: any) => ({
+              id: item.id,
+              name: item.purchase_info?.buyer_name || 'Guest',
+              email: item.purchase_info?.buyer_email || 'N/A',
+              ticket_type: item.ticket?.title || 'Unknown',
+              price: item.ticket?.price || 0,
+              date: item.created_at,
+              status: 'paid'
+          }));
+
+          setAttendeesList(formatted);
+          if (res.meta) {
+              setAttendeesPagination({
+                  current_page: res.meta.current_page,
+                  last_page: res.meta.last_page,
+                  total: res.meta.total,
+                  per_page: res.meta.per_page
+              });
+          }
+      } catch (error) {
+          console.error("Failed to fetch attendees", error);
+      } finally {
+          setAttendeesLoading(false);
+      }
+  };
+
+  useEffect(() => {
+      if (activeTab === 'attendees') {
+          const timer = setTimeout(() => {
+              fetchAttendees(attendeesPage);
+          }, 500);
+          return () => clearTimeout(timer);
+      }
+  }, [activeTab, attendeesPage, searchQuery]);
+
   if (loading) return <div className="p-8 flex justify-center"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-violet-600"></div></div>;
   if (!data) return <div className="p-8 text-center text-slate-500">Event not found</div>;
 
-  const { event, stats, attendees, tickets } = data;
+  const { event, stats, attendees: attendeesPreview, tickets } = data; // Rename data.attendees to preview
 
-  const filteredAttendees = attendees.filter((a: any) => 
-     a.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
-     a.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-     a.ticket_type.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  // Use server-side list for the main table, client-side filtering removed
+  // const filteredAttendees = ...
 
   const handleRefund = async (ticketId: string) => {
     if(!confirm("Are you sure you want to refund this ticket? This action cannot be undone.")) return;
@@ -70,6 +131,9 @@ export default function EventDetailsPage() {
         // Remove from list
         const newAttendees = data.attendees.filter((a: any) => a.id !== ticketId);
         setData({ ...data, attendees: newAttendees });
+        
+        // Remove from table list
+        setAttendeesList(prev => prev.filter(a => a.id !== ticketId));
     } catch (error) {
         console.error(error);
         toast.error("Failed to refund ticket");
@@ -195,7 +259,7 @@ export default function EventDetailsPage() {
                             </div>
                             <span className="text-sm font-medium text-muted-foreground">Attendees</span>
                         </div>
-                        <h2 className="text-2xl font-bold text-foreground">{attendees.length}</h2>
+                        {/* <h2 className="text-2xl font-bold text-foreground">{attendees.length}</h2> */}
                     </Card>
                 </div>
 
@@ -228,7 +292,7 @@ export default function EventDetailsPage() {
                             <button onClick={() => setActiveTab('attendees')} className="text-xs font-bold text-primary hover:text-primary/80">View All</button>
                         </div>
                         <div className="space-y-4">
-                             {attendees.slice(0, 5).map((attendee: any) => (
+                             {attendeesPreview.map((attendee: any) => (
                                  <div key={attendee.id} className="flex items-center gap-3">
                                       <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center text-xs font-bold text-muted-foreground">
                                           {attendee.name.charAt(0)}
@@ -240,7 +304,7 @@ export default function EventDetailsPage() {
                                       <span className="text-xs text-muted-foreground">{new Date(attendee.date).toLocaleDateString()}</span>
                                  </div>
                              ))}
-                             {attendees.length === 0 && <p className="text-sm text-muted-foreground text-center py-4">No attendees yet.</p>}
+                             {attendeesPreview.length === 0 && <p className="text-sm text-muted-foreground text-center py-4">No attendees yet.</p>}
                         </div>
                      </Card>
                 </div>
@@ -256,7 +320,7 @@ export default function EventDetailsPage() {
                               type="text" 
                               placeholder="Search attendees..." 
                               value={searchQuery}
-                              onChange={(e) => setSearchQuery(e.target.value)}
+                              onChange={(e) => { setSearchQuery(e.target.value); setAttendeesPage(1); }}
                               className="w-full pl-9 pr-4 py-2 bg-muted/50 border-none rounded-lg text-sm focus:ring-1 focus:ring-primary text-foreground placeholder:text-muted-foreground"
                           />
                       </div>
@@ -278,7 +342,11 @@ export default function EventDetailsPage() {
                              </tr>
                          </thead>
                          <tbody className="divide-y divide-border">
-                             {filteredAttendees.map((a: any) => (
+                             {attendeesLoading ? (
+                                 <tr>
+                                     <td colSpan={7} className="px-6 py-8 text-center text-muted-foreground">Loading attendees...</td>
+                                 </tr>
+                             ) : attendeesList.map((a: any) => (
                                  <tr key={a.id} className="hover:bg-accent/50">
                                      <td className="px-6 py-4 font-medium text-foreground">{a.name}</td>
                                      <td className="px-6 py-4">{a.email}</td>
@@ -302,16 +370,43 @@ export default function EventDetailsPage() {
                                      </td>
                                  </tr>
                              ))}
-                             {filteredAttendees.length === 0 && (
+                             {!attendeesLoading && attendeesList.length === 0 && (
                                  <tr>
-                                     <td colSpan={6} className="px-6 py-8 text-center text-muted-foreground">
-                                         No attendees found matching your search.
+                                     <td colSpan={7} className="px-6 py-8 text-center text-muted-foreground">
+                                         No attendees found.
                                      </td>
                                  </tr>
                              )}
                          </tbody>
                      </table>
                  </div>
+                 
+                 {/* Pagination Controls */}
+                 {attendeesPagination.last_page > 1 && (
+                    <div className="flex items-center justify-between px-6 py-4 border-t border-border bg-muted/20">
+                        <div className="text-xs text-muted-foreground">
+                            Showing {(attendeesPagination.current_page - 1) * attendeesPagination.per_page + 1} to {Math.min(attendeesPagination.current_page * attendeesPagination.per_page, attendeesPagination.total)} of {attendeesPagination.total} results
+                        </div>
+                        <div className="flex gap-2">
+                             <Button 
+                                variant="outline" 
+                                size="sm" 
+                                onClick={() => setAttendeesPage(p => Math.max(1, p - 1))}
+                                disabled={attendeesPage <= 1 || attendeesLoading}
+                            >
+                                Previous
+                            </Button>
+                            <Button 
+                                variant="outline" 
+                                size="sm" 
+                                onClick={() => setAttendeesPage(p => Math.min(attendeesPagination.last_page, p + 1))}
+                                disabled={attendeesPage >= attendeesPagination.last_page || attendeesLoading}
+                            >
+                                Next
+                            </Button>
+                        </div>
+                    </div>
+                 )}
              </Card>
         )}
 
