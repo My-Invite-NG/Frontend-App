@@ -277,7 +277,7 @@ export default function AdminFinancePage() {
             <div className="p-6 border-b border-border flex justify-between items-center bg-muted/30">
               <h3 className="font-bold text-foreground">Pending Withdrawals</h3>
               <button
-                onClick={fetchPayouts}
+                onClick={() => fetchPayouts(1)}
                 className="text-muted-foreground hover:text-primary transition-colors"
               >
                 <RefreshCcw className="w-4 h-4" />
@@ -371,7 +371,7 @@ export default function AdminFinancePage() {
             )}
             
             {/* Payouts Pagination */}
-            {payoutsPagination && payoutsPagination.meta.last_page > 1 && (
+            {payoutsPagination && payoutsPagination?.meta?.last_page > 1 && (
                 <div className="flex items-center justify-between px-6 py-4 border-t border-border bg-muted/20">
                     <div className="text-xs text-muted-foreground">
                         Page {payoutsPagination.meta.current_page} of {payoutsPagination.meta.last_page}
@@ -568,7 +568,7 @@ export default function AdminFinancePage() {
               </tbody>
             </table>
              {/* Transactions Pagination */}
-             {transactionsPagination && transactionsPagination.meta.last_page > 1 && (
+             {transactionsPagination && transactionsPagination?.meta?.last_page > 1 && (
                 <div className="flex items-center justify-between px-6 py-4 border-t border-border bg-muted/20">
                     <div className="text-xs text-muted-foreground">
                         Page {transactionsPagination.meta.current_page} of {transactionsPagination.meta.last_page}
@@ -620,7 +620,7 @@ export default function AdminFinancePage() {
 
             {/* Recent Activity Summary */}
             <div>
-              <div className="flex items-center justify-between mb-4 px-1">
+              <div className="flex items-center justify-between mb-4 px-4">
                 <h3 className="font-bold text-foreground">Recent Activity</h3>
                 <button
                   onClick={() => setActiveTab("transactions")}
