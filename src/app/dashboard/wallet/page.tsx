@@ -8,6 +8,7 @@ import { useRouter } from "next/navigation";
 import { useToast } from "@/context/ToastContext";
 import DepositModal from "./components/DepositModal";
 import WithdrawModal from "./components/WithdrawModal";
+import CreatePinModal from "./components/CreatePinModal";
 import TransactionList from "./components/TransactionList";
 
 export default function WalletPage() {
@@ -24,11 +25,17 @@ export default function WalletPage() {
 
     const [showDepositModal, setShowDepositModal] = useState(false);
     const [showWithdrawModal, setShowWithdrawModal] = useState(false);
+    const [showPinModal, setShowPinModal] = useState(false);
 
     const fetchData = async () => {
         try {
             const userRes = await userApi.getUser();
             setUser(userRes);
+
+            // Check if user has PIN
+            if (userRes && !userRes.has_pin) {
+                setShowPinModal(true);
+            }
             
             const historyRes = await userApi.getHistory({
                 status: statusFilter !== 'all' ? statusFilter : undefined,
@@ -168,6 +175,15 @@ export default function WalletPage() {
               success("Withdrawal Initiated!");
             }}
             walletBalance={mainWallet?.balance || 0}
+          />
+
+          <CreatePinModal 
+            isOpen={showPinModal}
+            onSuccess={() => {
+                setShowPinModal(false);
+                fetchData(); // Refresh user data to get updated has_pin status if needed, or just proceed
+                success("Transaction PIN Created Successfully!");
+            }}
           />
         </div>
       </div>

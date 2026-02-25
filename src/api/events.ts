@@ -26,8 +26,16 @@ export const eventsApi = {
     },
 
     async update(id: string, data: any): Promise<Event> {
-        const response = await client.put<ApiResponse<Event>>(`/user/events/${id}`, data);
-        return response.data.data;
+        const isFormData = data instanceof FormData;
+        if (isFormData) {
+            const response = await client.post<ApiResponse<Event>>(`/user/events/${id}`, data, {
+                headers: { 'Content-Type': 'multipart/form-data' }
+            });
+            return response.data.data;
+        } else {
+            const response = await client.put<ApiResponse<Event>>(`/user/events/${id}`, data);
+            return response.data.data;
+        }
     },
 
     async uploadImage(file: File): Promise<EventMedia> {

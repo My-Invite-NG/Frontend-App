@@ -18,6 +18,7 @@ export interface User {
     events_count?: number;
     purchased_tickets_count?: number;
     has_password?: boolean;
+    has_pin?: boolean;
 }
 
 export interface Wallet {
@@ -41,13 +42,13 @@ export interface EventMedia {
 
 export interface Ticket {
     id: number;
-    event_id: number;
+    event_id?: number;
     title: string;
     description: string;
     price: number;
     quantity: number;
-    created_at: string;
-    updated_at: string;
+    created_at?: string;
+    updated_at?: string;
     deleted_at?: string;
     purchased_tickets_count?: number; // often appended
 }

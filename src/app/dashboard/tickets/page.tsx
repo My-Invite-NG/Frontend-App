@@ -5,12 +5,14 @@ import { userApi } from "@/api/user";
 import { Loader2, Ticket as TicketIcon, Calendar, MapPin, QrCode } from "lucide-react";
 import Link from "next/link";
 import { formatCurrency } from "@/lib/utils";
+import TicketQRModal from "./TicketQRModal";
 
 export default function MyTicketsPage() {
     const [tickets, setTickets] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [page, setPage] = useState(1);
     const [meta, setMeta] = useState<any>(null);
+    const [selectedTicket, setSelectedTicket] = useState<any>(null);
 
     const fetchTickets = async (pageNum = 1) => {
         setLoading(true);
@@ -88,9 +90,12 @@ export default function MyTicketsPage() {
                                                      {formatCurrency(pt.ticket.price)}
                                                  </h3>
                                              </div>
-                                             <div className="bg-white p-2 rounded-lg shadow-sm border border-gray-100">
-                                                 <QrCode className="w-8 h-8 text-black" />
-                                             </div>
+                                             <button 
+                                                  onClick={() => setSelectedTicket(pt)}
+                                                  className="bg-white p-2 rounded-lg shadow-sm border border-gray-100 hover:bg-muted transition-colors"
+                                              >
+                                                  <QrCode className="w-8 h-8 text-black" />
+                                              </button>
                                          </div>
 
                                          <div className="space-y-2 mb-6 flex-1">
@@ -154,6 +159,12 @@ export default function MyTicketsPage() {
                     </div>
                 )}
             </div>
+            
+            <TicketQRModal 
+                isOpen={!!selectedTicket} 
+                onClose={() => setSelectedTicket(null)} 
+                ticket={selectedTicket} 
+            />
         </div>
     );
 }

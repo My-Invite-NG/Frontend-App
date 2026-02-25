@@ -23,6 +23,13 @@ export default function WithdrawModal({ isOpen, onClose, onSuccess, walletBalanc
     const [processing, setProcessing] = useState(false);
     const [bankLoading, setBankLoading] = useState(false);
     const [error, setError] = useState("");
+    const [bankSearch, setBankSearch] = useState("");
+    const [showBankList, setShowBankList] = useState(false);
+
+    // Filter banks
+    const filteredBanks = banks.filter(bank => 
+        bank.name.toLowerCase().includes(bankSearch.toLowerCase())
+    );
 
     // Reset state when modal opens/closes
     useEffect(() => {
@@ -34,6 +41,8 @@ export default function WithdrawModal({ isOpen, onClose, onSuccess, walletBalanc
             setAccountName("");
             setPin("");
             setError("");
+            setBankSearch("");
+            setShowBankList(false);
         }
     }, [isOpen]);
 
@@ -206,18 +215,51 @@ export default function WithdrawModal({ isOpen, onClose, onSuccess, walletBalanc
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     Select Bank
                   </label>
-                  <select
-                    value={selectedBank}
-                    onChange={(e) => setSelectedBank(e.target.value)}
-                    className="w-full px-4 py-3 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500 outline-none appearance-none text-gray-900 dark:text-gray-100"
-                  >
-                    <option value="">Choose a bank...</option>
-                    {banks.map((bank: any) => (
-                      <option key={bank.code} value={bank.code}>
-                        {bank.name}
-                      </option>
-                    ))}
-                  </select>
+                    <div className="relative">
+                      <div
+                        className="w-full px-4 py-3 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl focus-within:ring-2 focus-within:ring-violet-500/20 focus-within:border-violet-500 flex justify-between items-center cursor-pointer"
+                        onClick={() => setShowBankList(!showBankList)}
+                      >
+                        <span className={selectedBank ? "text-gray-900 dark:text-gray-100" : "text-gray-500"}>
+                          {selectedBank 
+                            ? banks.find((b: any) => b.code === selectedBank)?.name 
+                            : "Choose a bank..."}
+                        </span>
+                      </div>
+
+                      {showBankList && (
+                        <div className="absolute z-10 w-full mt-1 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl shadow-lg max-h-60 overflow-auto">
+                          <div className="p-2 sticky top-0 bg-white dark:bg-slate-800 border-b border-gray-100 dark:border-slate-700">
+                            <input
+                              type="text"
+                              placeholder="Search bank..."
+                              className="w-full px-3 py-2 bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-lg text-sm focus:outline-none focus:border-violet-500"
+                              value={bankSearch}
+                              onChange={(e) => setBankSearch(e.target.value)}
+                              onClick={(e) => e.stopPropagation()}
+                              autoFocus
+                            />
+                          </div>
+                          {filteredBanks.length === 0 ? (
+                            <div className="p-3 text-sm text-gray-500 text-center">No banks found</div>
+                          ) : (
+                            filteredBanks.map((bank: any) => (
+                              <div
+                                key={bank.code}
+                                className={`px-4 py-2 text-sm cursor-pointer hover:bg-violet-50 dark:hover:bg-violet-900/20 ${selectedBank === bank.code ? 'bg-violet-50 dark:bg-violet-900/10 text-violet-600 dark:text-violet-400 font-medium' : 'text-gray-700 dark:text-gray-300'}`}
+                                onClick={() => {
+                                  setSelectedBank(bank.code);
+                                  setShowBankList(false);
+                                  setBankSearch("");
+                                }}
+                              >
+                                {bank.name}
+                              </div>
+                            ))
+                          )}
+                        </div>
+                      )}
+                    </div>
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">

@@ -171,6 +171,10 @@ export default function CreateEventPage() {
       submissionData.append("location", formData.location);
       if (formData.lat) submissionData.append("lat", String(formData.lat));
       if (formData.lng) submissionData.append("lng", String(formData.lng));
+      
+      formData.tags.forEach((tag) => {
+        submissionData.append("tags[]", tag);
+      });
 
       submissionData.append("cover_index", String(coverIndex));
 

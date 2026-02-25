@@ -21,6 +21,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import WithdrawalLimitModal from "../../components/WithdrawalLimitModal";
+import ConfirmationModal from "@/components/ui/ConfirmationModal";
 import { toast } from "sonner";
 
 export default function EventDetailsPage() {
@@ -45,6 +46,9 @@ export default function EventDetailsPage() {
   });
 
   const [attendeesPage, setAttendeesPage] = useState(1);
+
+  const [showRefundModal, setShowRefundModal] = useState(false);
+  const [ticketToRefund, setTicketToRefund] = useState<string | null>(null);
 
   useEffect(() => {
     if (eventId) fetchDetails();
@@ -123,20 +127,29 @@ export default function EventDetailsPage() {
   // Use server-side list for the main table, client-side filtering removed
   // const filteredAttendees = ...
 
-  const handleRefund = async (ticketId: string) => {
-    if(!confirm("Are you sure you want to refund this ticket? This action cannot be undone.")) return;
+  const initiateRefund = (ticketId: string) => {
+      setTicketToRefund(ticketId);
+      setShowRefundModal(true);
+  };
+
+  const confirmRefund = async () => {
+    if (!ticketToRefund) return;
+    
     try {
-        await hostApi.refundTicket(ticketId);
+        await hostApi.refundTicket(ticketToRefund);
         toast.success("Ticket refunded successfully");
         // Remove from list
-        const newAttendees = data.attendees.filter((a: any) => a.id !== ticketId);
+        const newAttendees = data.attendees.filter((a: any) => a.id !== ticketToRefund);
         setData({ ...data, attendees: newAttendees });
         
         // Remove from table list
-        setAttendeesList(prev => prev.filter(a => a.id !== ticketId));
+        setAttendeesList(prev => prev.filter(a => a.id !== ticketToRefund));
     } catch (error) {
         console.error(error);
         toast.error("Failed to refund ticket");
+    } finally {
+        setShowRefundModal(false);
+        setTicketToRefund(null);
     }
   };
 
@@ -184,7 +197,7 @@ export default function EventDetailsPage() {
                             <ExternalLink className="w-4 h-4" /> View Page
                         </Button>
                      </Link>
-                     <Link href={`/events/${event.slug}/edit`}>
+                     <Link href={`${event.id}/edit`}>
                         <Button variant="outline" className="gap-2">
                             <Settings className="w-4 h-4" /> Edit
                         </Button>
@@ -259,7 +272,7 @@ export default function EventDetailsPage() {
                             </div>
                             <span className="text-sm font-medium text-muted-foreground">Attendees</span>
                         </div>
-                        {/* <h2 className="text-2xl font-bold text-foreground">{attendees.length}</h2> */}
+                        <h2 className="text-2xl font-bold text-foreground">{stats.tickets_sold}</h2>
                     </Card>
                 </div>
 
@@ -362,7 +375,7 @@ export default function EventDetailsPage() {
                                      </td>
                                      <td className="px-6 py-4 text-right">
                                          <button 
-                                            onClick={() => handleRefund(a.id)}
+                                            onClick={() => initiateRefund(a.id)}
                                             className="text-xs font-bold text-destructive hover:text-destructive/80 hover:underline"
                                          >
                                             Refund
@@ -449,6 +462,16 @@ export default function EventDetailsPage() {
          isOpen={withdrawalModalOpen} 
          onClose={() => setWithdrawalModalOpen(false)} 
          eventId={eventId} 
+      />
+
+      <ConfirmationModal
+        isOpen={showRefundModal}
+        onClose={() => setShowRefundModal(false)}
+        onConfirm={confirmRefund}
+        title="Refund Ticket"
+        message="Are you sure you want to refund this ticket? This action cannot be undone and the funds will be deducted from your wallet."
+        confirmLabel="Yes, Refund"
+        variant="danger"
       />
     </div>
   );
