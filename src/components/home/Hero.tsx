@@ -6,6 +6,19 @@ import BackgroundImage from "@/assets/images/Background.png";
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import CustomDropdown from "@/components/ui/CustomDropdown";
+import CustomDatePicker from "@/components/ui/CustomDatePicker";
+
+const CATEGORIES = [
+  { label: "All Categories", value: "" },
+  { label: "Music", value: "Music" },
+  { label: "Technology", value: "Technology" },
+  { label: "Business", value: "Business" },
+  { label: "Food & Drink", value: "Food & Drink" },
+  { label: "Arts", value: "Arts" },
+  { label: "Sports", value: "Sports" },
+  { label: "Wellness", value: "Wellness" },
+];
 
 export default function Hero() {
   const router = useRouter();
@@ -80,44 +93,21 @@ export default function Hero() {
               />
             </div>
             <div className="w-px h-8 bg-gray-100" />
-            <div className="flex items-center gap-2 px-2 py-1 transition-colors relative min-w-[140px]">
-              <Calendar className="w-4 h-4 text-gray-500 shrink-0" />
-              <input
-                type="date"
-                className="bg-transparent border-none outline-none text-sm text-gray-700 font-medium w-full [&::-webkit-calendar-picker-indicator]:opacity-0 absolute inset-0 opacity-0 cursor-pointer z-10"
-                onChange={(e) =>
-                  setFilters({ ...filters, date: e.target.value })
-                }
-              />
-              <span className="text-sm text-gray-600 font-medium whitespace-nowrap truncate w-full pointer-events-none">
-                {filters.date
-                  ? new Date(filters.date).toLocaleDateString()
-                  : "Any Date"}
-              </span>
-            </div>
             <div className="w-px h-8 bg-gray-100" />
-            <div className="flex items-center gap-2 px-2 py-1 transition-colors relative min-w-[150px]">
-              <CheckSquare className="w-4 h-4 text-gray-500 shrink-0" />
-              <select
-                className="bg-transparent border-none outline-none text-sm text-gray-700 font-medium w-full appearance-none absolute inset-0 opacity-0 cursor-pointer z-10"
-                value={filters.category}
-                onChange={(e) =>
-                  setFilters({ ...filters, category: e.target.value })
-                }
-              >
-                <option value="">All Categories</option>
-                <option value="Music">Music</option>
-                <option value="Technology">Technology</option>
-                <option value="Business">Business</option>
-                <option value="Food & Drink">Food & Drink</option>
-                <option value="Arts">Arts</option>
-                <option value="Sports">Sports</option>
-                <option value="Wellness">Wellness</option>
-              </select>
-              <span className="text-sm text-gray-600 font-medium whitespace-nowrap truncate w-full pointer-events-none">
-                {filters.category || "All Categories"}
-              </span>
-            </div>
+            <CustomDatePicker 
+              value={filters.date}
+              onChange={(date) => setFilters({ ...filters, date })}
+              className="flex-1"
+            />
+            <div className="w-px h-8 bg-gray-100" />
+            <CustomDropdown 
+              options={CATEGORIES}
+              value={filters.category}
+              onChange={(category) => setFilters({ ...filters, category })}
+              icon={CheckSquare}
+              placeholder="All Categories"
+              className="flex-1"
+            />
           </div>
 
           {/* Search Button */}

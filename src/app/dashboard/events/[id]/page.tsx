@@ -236,21 +236,43 @@ export default function EventDetailsPage() {
                 {/* Stats Grid */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                     <Card className="p-6">
-                        <div className="flex items-center gap-3 mb-2">
-                            <div className="w-8 h-8 rounded-full bg-violet-500/10 flex items-center justify-center text-violet-600">
-                                <DollarSign className="w-4 h-4" />
+                        <div className="flex items-center justify-between mb-4">
+                            <div className="flex items-center gap-3">
+                                <div className="w-8 h-8 rounded-full bg-violet-500/10 flex items-center justify-center text-violet-600">
+                                    <DollarSign className="w-4 h-4" />
+                                </div>
+                                <span className="text-sm font-medium text-muted-foreground">Financial Overview</span>
                             </div>
-                            <span className="text-sm font-medium text-muted-foreground">Total Revenue</span>
-                        </div>
-                        <div className="flex items-end justify-between">
-                            <h2 className="text-2xl font-bold text-foreground">{formatCurrency(stats.revenue || 0)}</h2>
                             {stats.withdrawable > 0 && (
-                                <button 
+                                <Button 
+                                    size="sm"
                                     onClick={() => setWithdrawalModalOpen(true)}
-                                    className="text-xs font-bold text-primary hover:underline"
+                                    className="h-8 rounded-lg text-xs"
                                 >
-                                    Withdraw {formatCurrency(stats.withdrawable)}
-                                </button>
+                                    Request Withdrawal
+                                </Button>
+                            )}
+                        </div>
+                        
+                        <div className="space-y-3">
+                            <div className="flex justify-between items-center text-sm">
+                                <span className="text-muted-foreground">Total Sales (Gross)</span>
+                                <span className="font-bold text-foreground">{formatCurrency(stats.revenue || 0)}</span>
+                            </div>
+                            <div className="flex justify-between items-center text-sm">
+                                <span className="text-muted-foreground">Already Withdrawn</span>
+                                <span className="font-bold text-orange-600">-{formatCurrency(stats.already_withdrawn || 0)}</span>
+                            </div>
+                            <div className="pt-2 border-t border-dashed border-border flex justify-between items-center">
+                                <span className="text-sm font-medium text-foreground">Next Scheduled Payout</span>
+                                <span className="text-xl font-bold text-primary">
+                                    {formatCurrency(Math.max(0, (stats.revenue || 0) - (stats.already_withdrawn || 0)))}
+                                </span>
+                            </div>
+                            {stats.withdrawable > 0 && (
+                                <p className="text-[10px] text-muted-foreground text-right italic">
+                                    * {formatCurrency(stats.withdrawable)} available for early withdrawal
+                                </p>
                             )}
                         </div>
                     </Card>
