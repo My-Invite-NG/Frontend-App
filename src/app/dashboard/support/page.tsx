@@ -108,10 +108,12 @@ export default function SupportPage() {
           {/* Header */}
           <div className="flex justify-between items-center">
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">
+              <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
                 Support Center
               </h1>
-              <p className="text-gray-500">Track your inquiries and disputes</p>
+              <p className="text-gray-500 dark:text-gray-400 text-sm">
+                Track your inquiries and disputes
+              </p>
             </div>
             <button
               onClick={() => setShowModal(true)}
@@ -123,18 +125,20 @@ export default function SupportPage() {
           </div>
 
           {/* Content */}
-          <div>
+          <div
+            className={`bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800`}
+          >
             {loading ? (
-              <div className="text-center py-20 text-gray-400">
+              <div className="text-center py-20 text-2xl font-medium text-gray-900 dark:text-gray-100">
                 Loading tickets...
               </div>
             ) : tickets.length === 0 ? (
-              <div className="text-center py-20 bg-white rounded-2xl border border-gray-100 shadow-sm">
+              <div className="text-center py-20 rounded-2xl border shadow-sm bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800">
                 <MessageSquare className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-                <h3 className="text-lg font-medium text-gray-900 mb-2">
+                <h3 className="font-semibold mb-2 text-2xl text-gray-900 dark:text-gray-100">
                   No tickets yet
                 </h3>
-                <p className="text-gray-500 mb-6">
+                <p className="text-gray-500 dark:text-gray-400 text-sm mb-6">
                   Need help? Open a new support ticket to get started.
                 </p>
                 <button
@@ -145,13 +149,13 @@ export default function SupportPage() {
                 </button>
               </div>
             ) : (
-              <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+              <div className="bg-white dark:bg-slate-900 rounded-2xl border border-gray-100 dark:border-slate-800 shadow-sm overflow-hidden">
                 <div className="divide-y divide-gray-100">
                   {tickets.map((ticket) => (
                     <Link
                       key={ticket.id}
                       href={`/dashboard/support/${ticket.id}`}
-                      className="block hover:bg-gray-50 transition-colors group"
+                      className="block transition-colors group"
                     >
                       <div className="p-6 flex items-center justify-between">
                         <div className="flex items-center gap-4">
@@ -172,7 +176,7 @@ export default function SupportPage() {
                           </div>
                           <div>
                             <div className="flex items-center gap-2 mb-1">
-                              <h3 className="font-bold text-gray-900 group-hover:text-violet-600 transition-colors">
+                              <h3 className="font-bold text-gray-900 dark:text-gray-200 group-hover:text-violet-600 transition-colors">
                                 {ticket.subject}
                               </h3>
                               {getStatusBadge(ticket.status)}
@@ -217,11 +221,13 @@ export default function SupportPage() {
           {/* Modal */}
           {showModal && (
             <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-              <div className="bg-white rounded-xl w-full max-w-lg shadow-2xl p-6">
-                <h2 className="text-xl font-bold mb-4">Open New Ticket</h2>
+              <div className="bg-white rounded-xl w-full max-w-lg shadow-2xl p-6 dark:bg-slate-900 border-slate-200 dark:border-slate-800">
+                <h2 className="text-xl font-bold mb-4 text-gray-500 dark:text-white">
+                  Open New Ticket
+                </h2>
                 <form onSubmit={handleSubmit} className="space-y-4">
                   <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">
+                    <label className="block text-sm font-medium text-slate-700 dark:text-gray-200 mb-1">
                       Subject
                     </label>
                     <input
@@ -236,7 +242,7 @@ export default function SupportPage() {
                   </div>
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-sm font-medium text-slate-700 mb-1">
+                      <label className="block text-sm font-medium text-slate-700 dark:text-gray-200 mb-1">
                         Category
                       </label>
                       <select
@@ -253,7 +259,7 @@ export default function SupportPage() {
                       </select>
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-slate-700 mb-1">
+                      <label className="block text-sm font-medium text-slate-700 dark:text-gray-200 mb-1">
                         Priority
                       </label>
                       <select
@@ -273,7 +279,7 @@ export default function SupportPage() {
 
                   {formData.category === "dispute" && (
                     <div>
-                      <label className="block text-sm font-medium text-slate-700 mb-1">
+                      <label className="block text-sm font-medium text-slate-700 dark:text-gray-200 mb-1">
                         Transaction ID (Optional)
                       </label>
                       <input
@@ -292,7 +298,7 @@ export default function SupportPage() {
                   )}
 
                   <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">
+                    <label className="block text-sm font-semibold text-slate-700 dark:text-gray-200 mb-1">
                       Message
                     </label>
                     <textarea

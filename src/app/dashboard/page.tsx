@@ -56,9 +56,7 @@ export default function DashboardPage() {
       return () => document.removeEventListener('click', handleClickOutside);
   }, []);
 
-  const toggleDropdown = (e: React.MouseEvent, id: string) => {
-      e.preventDefault();
-      e.stopPropagation();
+  const toggleDropdown = (id: string) => {
       setOpenDropdownId(openDropdownId === id ? null : id);
   };
 
@@ -447,7 +445,7 @@ export default function DashboardPage() {
                       className="hover:bg-gray-50/50 dark:hover:bg-slate-800/50 transition-colors group relative"
                     >
                       <td className="px-6 py-4">
-                        <div className="flex items-center gap-3">
+                        <div className="flex items-center gap-3 cursor-pointer" onClick={() => router.push(`/dashboard/events/${event.id}`)}>
                           <div className="w-10 h-10 rounded-lg bg-gray-200 dark:bg-slate-700 shrink-0 overflow-hidden relative">
                             {event.image_url ? (
                               <img
@@ -519,50 +517,13 @@ export default function DashboardPage() {
                       <td className="px-6 py-4 text-center relative">
                         <div className="flex items-center justify-center gap-2 transition-opacity">
                           <Link
-                            href={`/events/${event.slug}/edit`}
+                            href={`events/${event.slug}/edit`}
                             className="p-1.5 hover:bg-gray-100 dark:hover:bg-slate-700 rounded text-gray-500 dark:text-slate-400 hover:text-violet-600 dark:hover:text-violet-400"
                             title="Edit Event"
                           >
                             <Pencil className="w-4 h-4" />
                           </Link>
-                          <button
-                            onClick={(e) => toggleDropdown(e, event.id)}
-                            className={`p-1.5 rounded hover:bg-gray-100 dark:hover:bg-slate-700 ${openDropdownId === event.id ? "bg-gray-100 dark:bg-slate-700 text-gray-900 dark:text-gray-100" : "text-gray-500 dark:text-slate-400 hover:text-gray-900 dark:hover:text-gray-100"}`}
-                          >
-                            <MoreHorizontal className="w-4 h-4" />
-                          </button>
                         </div>
-
-                        {/* Dropdown */}
-                        {openDropdownId === event.id && (
-                          <div className="absolute top-10 right-0 w-40 bg-white dark:bg-slate-900 rounded-xl shadow-xl border border-gray-100 dark:border-slate-800 z-50 overflow-hidden origin-top-right text-left">
-                            <div className="py-1">
-                              <Link
-                                href={`/events/${event.slug}`}
-                                className="flex items-center gap-2 px-4 py-2.5 text-xs font-medium text-gray-700 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-slate-800"
-                              >
-                                View Event
-                              </Link>
-                              <Link
-                                href={`/events/${event.slug}/edit`}
-                                className="flex items-center gap-2 px-4 py-2.5 text-xs font-medium text-gray-700 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-slate-800"
-                              >
-                                Edit Details
-                              </Link>
-                              <button
-                                onClick={() => {
-                                  setSelectedWithdrawalEventId(event.id);
-                                  setWithdrawalModalOpen(true);
-                                  setOpenDropdownId(null);
-                                }}
-                                className="w-full flex items-center gap-2 px-4 py-2.5 text-xs font-medium text-gray-700 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-slate-800 text-left"
-                              >
-                                <DollarSign className="w-3 h-3 text-violet-600" />
-                                Early Withdrawal
-                              </button>
-                            </div>
-                          </div>
-                        )}
                       </td>
                     </tr>
                   );
@@ -584,12 +545,6 @@ export default function DashboardPage() {
         message="You need to verify your identity before creating events. Please go to Settings to complete the verification process."
         variant="primary"
         confirmLabel="Go to Settings"
-      />
-
-      <WithdrawalLimitModal
-        isOpen={withdrawalModalOpen}
-        onClose={() => setWithdrawalModalOpen(false)}
-        eventId={selectedWithdrawalEventId}
       />
     </div>
   );

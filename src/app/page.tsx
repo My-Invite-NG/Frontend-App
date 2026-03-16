@@ -14,7 +14,7 @@ export default function Home() {
       <Hero />
       <FeaturedEvents />
       <Categories />
-      <Newsletter />
+      {/* <Newsletter /> */}
       <HostBenefits />
       <Footer />
     </main>
