@@ -23,6 +23,11 @@ export const adminApi = {
     return response.data.data;
   },
 
+  async getChart(params?: any): Promise<any> {
+    const response = await adminClient.get<ApiResponse<any>>("/admin/chart", { params });
+    return response.data.data;
+  },
+
   // Events
   // Events
   // Events

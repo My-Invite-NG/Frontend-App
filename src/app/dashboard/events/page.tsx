@@ -309,13 +309,24 @@ export default function MyEventsPage() {
                   </div>
                 </div>
                 <div className="flex items-center gap-2 w-full md:w-auto mt-4 md:mt-0 relative">
-                  <Link
-                    href={`/dashboard/events/${event.id}/edit`}
-                    onClick={(e) => e.stopPropagation()}
-                    className="flex-1 md:flex-none px-4 py-2 border border-border text-foreground font-medium rounded-lg hover:bg-muted text-sm text-center transition-colors"
-                  >
-                    Edit
-                  </Link>
+                  {event.has_withdrawal ? (
+                    <button
+                      disabled
+                      title="Cannot edit event after withdrawal request"
+                      onClick={(e) => e.stopPropagation()}
+                      className="flex-1 md:flex-none px-4 py-2 border border-border text-muted-foreground font-medium rounded-lg bg-muted/50 text-sm text-center cursor-not-allowed"
+                    >
+                      Edit
+                    </button>
+                  ) : (
+                    <Link
+                      href={`/dashboard/events/${event.id}/edit`}
+                      onClick={(e) => e.stopPropagation()}
+                      className="flex-1 md:flex-none px-4 py-2 border border-border text-foreground font-medium rounded-lg hover:bg-muted text-sm text-center transition-colors"
+                    >
+                      Edit
+                    </Link>
+                  )}
                   <button
                     onClick={(e) => toggleDropdown(e, event.id)}
                     className={`p-2 rounded-lg transition-colors ${openDropdownId === event.id ? "bg-muted text-foreground" : "text-muted-foreground hover:bg-muted hover:text-foreground"}`}
@@ -354,12 +365,22 @@ export default function MyEventsPage() {
                             Unpublish
                           </button>
                         )}
-                        <button
-                          onClick={() => confirmAction("delete", event.id)}
-                          className="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-destructive hover:bg-destructive/10 text-left border-t border-border transition-colors"
-                        >
-                          <Trash2 className="w-4 h-4" /> Delete Event
-                        </button>
+                        {event.has_withdrawal ? (
+                          <button
+                            disabled
+                            title="Cannot delete event after withdrawal request"
+                            className="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-muted-foreground bg-muted/50 text-left border-t border-border cursor-not-allowed"
+                          >
+                            <Trash2 className="w-4 h-4" /> Delete Event
+                          </button>
+                        ) : (
+                          <button
+                            onClick={() => confirmAction("delete", event.id)}
+                            className="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-destructive hover:bg-destructive/10 text-left border-t border-border transition-colors"
+                          >
+                            <Trash2 className="w-4 h-4" /> Delete Event
+                          </button>
+                        )}
                       </div>
                     </div>
                   )}

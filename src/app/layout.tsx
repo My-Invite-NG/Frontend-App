@@ -10,8 +10,32 @@ const outfit = Outfit({
 });
 
 export const metadata: Metadata = {
-  title: "MyInvite - Find Your Next Experience",
-  description: "Discover thousands of events happening near you and around the world.",
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "https://myinvite.ng"),
+  title: {
+    default: "MyInvite - Find Your Next Experience",
+    template: "%s | MyInvite",
+  },
+  description: "Discover thousands of events happening near you and around the world. Create, promote, and sell tickets to your events with MyInvite.",
+  keywords: ["events", "tickets", "concert", "party", "conference", "meetup", "Nigeria", "Lagos", "event management"],
+  authors: [{ name: "MyInvite" }],
+  creator: "MyInvite",
+  openGraph: {
+    type: "website",
+    locale: "en_NG",
+    siteName: "MyInvite",
+    title: "MyInvite - Find Your Next Experience",
+    description: "Discover thousands of events happening near you and around the world.",
+    url: "/",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "MyInvite - Find Your Next Experience",
+    description: "Discover thousands of events happening near you and around the world.",
+  },
+  robots: {
+    index: true,
+    follow: true,
+  },
 };
 
 export default function RootLayout({

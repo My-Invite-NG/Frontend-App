@@ -7,8 +7,12 @@ import JoinJourney from "@/components/about/JoinJourney";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "About Us - MyInvite",
-  description: "Learn about our mission to revolutionize event discovery.",
+  title: "About Us",
+  description: "Learn about MyInvite's mission to revolutionize event discovery and ticketing across Nigeria and beyond.",
+  openGraph: {
+    title: "About Us | MyInvite",
+    description: "Learn about MyInvite's mission to revolutionize event discovery and ticketing.",
+  },
 };
 
 export default function AboutPage() {

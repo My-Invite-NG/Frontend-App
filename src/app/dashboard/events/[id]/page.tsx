@@ -18,7 +18,7 @@ import {
   Search,
   CheckCircle2,
   AlertCircle,
-  Share2
+  Share2,
 } from "lucide-react";
 import Link from "next/link";
 import WithdrawalLimitModal from "../../components/WithdrawalLimitModal";
@@ -40,10 +40,10 @@ export default function EventDetailsPage() {
   const [attendeesList, setAttendeesList] = useState<any[]>([]);
   const [attendeesLoading, setAttendeesLoading] = useState(false);
   const [attendeesPagination, setAttendeesPagination] = useState({
-      current_page: 1,
-      last_page: 1,
-      total: 0,
-      per_page: 20
+    current_page: 1,
+    last_page: 1,
+    total: 0,
+    per_page: 20,
   });
 
   const [attendeesPage, setAttendeesPage] = useState(1);
@@ -69,59 +69,67 @@ export default function EventDetailsPage() {
   };
 
   const fetchAttendees = async (page = 1) => {
-      if (!eventId) return;
-      setAttendeesLoading(true);
-      try {
-          // hostApi.getAttendees returns PaginatedResponse<PurchasedTicket>
-          // PurchasedTicketResource structure: { ticket_id, purchase_info: { buyer_name, ... }, ... }
-          // We need to map it to the structure expected by the table if different
-          // Table expects: name, email, ticket_type, price, date
-          // PurchasedTicketResource has: ticket.title, ticket.price, created_at
-          
-          const res = await hostApi.getAttendees(eventId, { 
-              page, 
-              limit: 20,
-              search: searchQuery 
-          });
-          
-          // Map to table format
-          const formatted = res.data.map((item: any) => ({
-              id: item.id,
-              name: item.purchase_info?.buyer_name || 'Guest',
-              email: item.purchase_info?.buyer_email || 'N/A',
-              ticket_type: item.ticket?.title || 'Unknown',
-              price: item.ticket?.price || 0,
-              date: item.created_at,
-              status: 'paid'
-          }));
+    if (!eventId) return;
+    setAttendeesLoading(true);
+    try {
+      // hostApi.getAttendees returns PaginatedResponse<PurchasedTicket>
+      // PurchasedTicketResource structure: { ticket_id, purchase_info: { buyer_name, ... }, ... }
+      // We need to map it to the structure expected by the table if different
+      // Table expects: name, email, ticket_type, price, date
+      // PurchasedTicketResource has: ticket.title, ticket.price, created_at
 
-          setAttendeesList(formatted);
-          if (res.meta) {
-              setAttendeesPagination({
-                  current_page: res.meta.current_page,
-                  last_page: res.meta.last_page,
-                  total: res.meta.total,
-                  per_page: res.meta.per_page
-              });
-          }
-      } catch (error) {
-          console.error("Failed to fetch attendees", error);
-      } finally {
-          setAttendeesLoading(false);
+      const res = await hostApi.getAttendees(eventId, {
+        page,
+        limit: 20,
+        search: searchQuery,
+      });
+
+      // Map to table format
+      const formatted = res.data.map((item: any) => ({
+        id: item.id,
+        name: item.purchase_info?.buyer_name || "Guest",
+        email: item.purchase_info?.buyer_email || "N/A",
+        ticket_type: item.ticket?.title || "Unknown",
+        price: item.ticket?.price || 0,
+        date: item.created_at,
+        status: "paid",
+      }));
+
+      setAttendeesList(formatted);
+      if (res.meta) {
+        setAttendeesPagination({
+          current_page: res.meta.current_page,
+          last_page: res.meta.last_page,
+          total: res.meta.total,
+          per_page: res.meta.per_page,
+        });
       }
+    } catch (error) {
+      console.error("Failed to fetch attendees", error);
+    } finally {
+      setAttendeesLoading(false);
+    }
   };
 
   useEffect(() => {
-      if (activeTab === 'attendees') {
-          const timer = setTimeout(() => {
-              fetchAttendees(attendeesPage);
-          }, 500);
-          return () => clearTimeout(timer);
-      }
+    if (activeTab === "attendees") {
+      const timer = setTimeout(() => {
+        fetchAttendees(attendeesPage);
+      }, 500);
+      return () => clearTimeout(timer);
+    }
   }, [activeTab, attendeesPage, searchQuery]);
 
-  if (loading) return <div className="p-8 flex justify-center"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-violet-600"></div></div>;
-  if (!data) return <div className="p-8 text-center text-slate-500">Event not found</div>;
+  if (loading)
+    return (
+      <div className="p-8 flex justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-violet-600"></div>
+      </div>
+    );
+  if (!data)
+    return (
+      <div className="p-8 text-center text-slate-500">Event not found</div>
+    );
 
   const { event, stats, attendees: attendeesPreview, tickets } = data; // Rename data.attendees to preview
 
@@ -129,28 +137,30 @@ export default function EventDetailsPage() {
   // const filteredAttendees = ...
 
   const initiateRefund = (ticketId: string) => {
-      setTicketToRefund(ticketId);
-      setShowRefundModal(true);
+    setTicketToRefund(ticketId);
+    setShowRefundModal(true);
   };
 
   const confirmRefund = async () => {
     if (!ticketToRefund) return;
-    
+
     try {
-        await hostApi.refundTicket(ticketToRefund);
-        toast.success("Ticket refunded successfully");
-        // Remove from list
-        const newAttendees = data.attendees.filter((a: any) => a.id !== ticketToRefund);
-        setData({ ...data, attendees: newAttendees });
-        
-        // Remove from table list
-        setAttendeesList(prev => prev.filter(a => a.id !== ticketToRefund));
+      await hostApi.refundTicket(ticketToRefund);
+      toast.success("Ticket refunded successfully");
+      // Remove from list
+      const newAttendees = data.attendees.filter(
+        (a: any) => a.id !== ticketToRefund,
+      );
+      setData({ ...data, attendees: newAttendees });
+
+      // Remove from table list
+      setAttendeesList((prev) => prev.filter((a) => a.id !== ticketToRefund));
     } catch (error) {
-        console.error(error);
-        toast.error("Failed to refund ticket");
+      console.error(error);
+      toast.error("Failed to refund ticket");
     } finally {
-        setShowRefundModal(false);
-        setTicketToRefund(null);
+      setShowRefundModal(false);
+      setTicketToRefund(null);
     }
   };
 
@@ -174,337 +184,492 @@ export default function EventDetailsPage() {
   return (
     <div className="min-h-screen bg-background pb-20 pt-8 transition-colors">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        
         {/* Header */}
         <div className="mb-8">
-            <Link href="/dashboard/events" className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground mb-4 transition-colors">
-                <ArrowLeft className="w-4 h-4 mr-1" /> Back to Events
-            </Link>
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                <div className="flex items-start gap-4">
-                    <div className="w-16 h-16 rounded-xl bg-muted overflow-hidden relative shrink-0">
-                         {event.image_url ? (
-                            <img src={event.image_url} alt="" className="w-full h-full object-cover" />
-                         ) : (
-                             <div className="flex items-center justify-center h-full text-muted-foreground"><Calendar className="w-6 h-6" /></div>
-                         )}
-                    </div>
-                    <div>
-                        <div className="flex items-center gap-2">
-                             <h1 className="text-2xl font-bold text-foreground">{event.title}</h1>
-                             <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${event.status === 'published' ? 'bg-emerald-500/10 text-emerald-600' : 'bg-muted text-muted-foreground'}`}>
-                                 {event.status}
-                             </span>
-                        </div>
-                        <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground mt-1">
-                             <div className="flex items-center gap-1">
-                                 <Calendar className="w-3.5 h-3.5" />
-                                 {new Date(event.start_date).toLocaleDateString()} at {new Date(event.start_date).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
-                             </div>
-                             <div className="hidden md:block w-1 h-1 rounded-full bg-border"></div>
-                             <div>
-                                 {event.location || 'Online Event'}
-                             </div>
-                        </div>
-                    </div>
-                </div>
-
+          <Link
+            href="/dashboard/events"
+            className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground mb-4 transition-colors"
+          >
+            <ArrowLeft className="w-4 h-4 mr-1" /> Back to Events
+          </Link>
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div className="flex items-start gap-4">
+              <div className="w-16 h-16 rounded-xl bg-muted overflow-hidden relative shrink-0">
+                {event.image_url ? (
+                  <img
+                    src={event.image_url}
+                    alt=""
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <div className="flex items-center justify-center h-full text-muted-foreground">
+                    <Calendar className="w-6 h-6" />
+                  </div>
+                )}
+              </div>
+              <div>
                 <div className="flex items-center gap-2">
-                     <Button variant="outline" onClick={handleShare} className="gap-2">
-                        <Share2 className="w-4 h-4" /> Share
-                     </Button>
-                     <Link href={`/events/${event.slug}`} target="_blank">
-                        <Button variant="outline" className="gap-2">
-                            <ExternalLink className="w-4 h-4" /> View Page
-                        </Button>
-                     </Link>
-                     <Link href={`${event.id}/edit`}>
-                        <Button variant="outline" className="gap-2">
-                            <Settings className="w-4 h-4" /> Edit
-                        </Button>
-                     </Link>
+                  <h1 className="text-2xl font-bold text-foreground">
+                    {event.title}
+                  </h1>
+                  <span
+                    className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${event.status === "published" ? "bg-emerald-500/10 text-emerald-600" : "bg-muted text-muted-foreground"}`}
+                  >
+                    {event.status}
+                  </span>
                 </div>
+                <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground mt-1">
+                  <div className="flex items-center gap-1">
+                    <Calendar className="w-3.5 h-3.5" />
+                    {new Date(event.start_date).toLocaleDateString()} at{" "}
+                    {new Date(event.start_date).toLocaleTimeString([], {
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })}
+                  </div>
+                  <div className="hidden md:block w-1 h-1 rounded-full bg-border"></div>
+                  <div>{event.location || "Online Event"}</div>
+                </div>
+              </div>
             </div>
+
+            <div className="flex items-center gap-2">
+              <Button variant="outline" onClick={handleShare} className="gap-2">
+                <Share2 className="w-4 h-4" /> Share
+              </Button>
+              <Link href={`/events/${event.slug}`} target="_blank">
+                <Button variant="outline" className="gap-2">
+                  <ExternalLink className="w-4 h-4" /> View Page
+                </Button>
+              </Link>
+              {event.has_withdrawal ? (
+                <Button variant="outline" className="gap-2" disabled title="Cannot edit event after withdrawal request">
+                  <Settings className="w-4 h-4" /> Edit
+                </Button>
+              ) : (
+                <Link href={`${event.id}/edit`}>
+                  <Button variant="outline" className="gap-2">
+                    <Settings className="w-4 h-4" /> Edit
+                  </Button>
+                </Link>
+              )}
+            </div>
+          </div>
         </div>
 
         {/* Navigation Tabs */}
         <div className="border-b border-border mb-8">
-            <nav className="flex gap-6">
-                <button 
-                    onClick={() => setActiveTab('overview')}
-                    className={`pb-4 text-sm font-medium border-b-2 transition-colors ${activeTab === 'overview' ? 'border-primary text-primary' : 'border-transparent text-muted-foreground hover:text-foreground'}`}
-                >
-                    Overview
-                </button>
-                <button 
-                    onClick={() => setActiveTab('attendees')}
-                    className={`pb-4 text-sm font-medium border-b-2 transition-colors ${activeTab === 'attendees' ? 'border-primary text-primary' : 'border-transparent text-muted-foreground hover:text-foreground'}`}
-                >
-                    Attendees
-                </button>
-                 <button 
-                    onClick={() => setActiveTab('tickets')}
-                    className={`pb-4 text-sm font-medium border-b-2 transition-colors ${activeTab === 'tickets' ? 'border-primary text-primary' : 'border-transparent text-muted-foreground hover:text-foreground'}`}
-                >
-                    Ticket Types
-                </button>
-            </nav>
+          <nav className="flex gap-6">
+            <button
+              onClick={() => setActiveTab("overview")}
+              className={`pb-4 text-sm font-medium border-b-2 transition-colors ${activeTab === "overview" ? "border-primary text-primary" : "border-transparent text-muted-foreground hover:text-foreground"}`}
+            >
+              Overview
+            </button>
+            <button
+              onClick={() => setActiveTab("attendees")}
+              className={`pb-4 text-sm font-medium border-b-2 transition-colors ${activeTab === "attendees" ? "border-primary text-primary" : "border-transparent text-muted-foreground hover:text-foreground"}`}
+            >
+              Attendees
+            </button>
+            <button
+              onClick={() => setActiveTab("tickets")}
+              className={`pb-4 text-sm font-medium border-b-2 transition-colors ${activeTab === "tickets" ? "border-primary text-primary" : "border-transparent text-muted-foreground hover:text-foreground"}`}
+            >
+              Ticket Types
+            </button>
+          </nav>
         </div>
 
         {/* Content */}
-        {activeTab === 'overview' && (
-            <div className="space-y-6">
-                {/* Stats Grid */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <Card className="p-6">
-                        <div className="flex items-center justify-between mb-4">
-                            <div className="flex items-center gap-3">
-                                <div className="w-8 h-8 rounded-full bg-violet-500/10 flex items-center justify-center text-violet-600">
-                                    <DollarSign className="w-4 h-4" />
-                                </div>
-                                <span className="text-sm font-medium text-muted-foreground">Financial Overview</span>
-                            </div>
-                            {stats.withdrawable > 0 && (
-                                <Button 
-                                    size="sm"
-                                    onClick={() => setWithdrawalModalOpen(true)}
-                                    className="h-8 rounded-lg text-xs"
-                                >
-                                    Request Withdrawal
-                                </Button>
-                            )}
-                        </div>
-                        
-                        <div className="space-y-3">
-                            <div className="flex justify-between items-center text-sm">
-                                <span className="text-muted-foreground">Total Sales (Gross)</span>
-                                <span className="font-bold text-foreground">{formatCurrency(stats.revenue || 0)}</span>
-                            </div>
-                            <div className="flex justify-between items-center text-sm">
-                                <span className="text-muted-foreground">Already Withdrawn</span>
-                                <span className="font-bold text-orange-600">-{formatCurrency(stats.already_withdrawn || 0)}</span>
-                            </div>
-                            <div className="pt-2 border-t border-dashed border-border flex justify-between items-center">
-                                <span className="text-sm font-medium text-foreground">Next Scheduled Payout</span>
-                                <span className="text-xl font-bold text-primary">
-                                    {formatCurrency(Math.max(0, (stats.revenue || 0) - (stats.already_withdrawn || 0)))}
-                                </span>
-                            </div>
-                            {stats.withdrawable > 0 && (
-                                <p className="text-[10px] text-muted-foreground text-right italic">
-                                    * {formatCurrency(stats.withdrawable)} available for early withdrawal
-                                </p>
-                            )}
-                        </div>
-                    </Card>
-
-                    <Card className="p-6">
-                        <div className="flex items-center gap-3 mb-2">
-                            <div className="w-8 h-8 rounded-full bg-blue-500/10 flex items-center justify-center text-blue-600">
-                                <Ticket className="w-4 h-4" />
-                            </div>
-                            <span className="text-sm font-medium text-muted-foreground">Tickets Sold</span>
-                        </div>
-                        <h2 className="text-2xl font-bold text-foreground">{stats.tickets_sold}</h2>
-                    </Card>
-
-                    <Card className="p-6">
-                        <div className="flex items-center gap-3 mb-2">
-                            <div className="w-8 h-8 rounded-full bg-orange-500/10 flex items-center justify-center text-orange-600">
-                                <Users className="w-4 h-4" />
-                            </div>
-                            <span className="text-sm font-medium text-muted-foreground">Attendees</span>
-                        </div>
-                        <h2 className="text-2xl font-bold text-foreground">{stats.tickets_sold}</h2>
-                    </Card>
-                </div>
-
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                     {/* Ticket Sales Breakdown */}
-                     <Card className="p-6">
-                         <h3 className="font-bold text-foreground mb-4">Ticket Sales by Type</h3>
-                         <div className="space-y-4">
-                             {tickets.map((t: any) => (
-                                 <div key={t.id} className="flex items-center justify-between">
-                                      <div>
-                                          <p className="font-medium text-sm text-foreground">{t.title}</p>
-                                          <p className="text-xs text-muted-foreground">{t.sold} / {t.quantity} sold</p>
-                                      </div>
-                                      <div className="text-right">
-                                           <p className="font-bold text-sm text-foreground">{formatCurrency(t.revenue)}</p>
-                                           <div className="w-24 h-1.5 bg-muted rounded-full mt-1 overflow-hidden">
-                                               <div className="h-full bg-primary rounded-full" style={{ width: `${(t.sold / t.quantity) * 100}%`}}></div>
-                                           </div>
-                                      </div>
-                                 </div>
-                             ))}
-                         </div>
-                     </Card>
-
-                     {/* Recent Attendees Preview */}
-                     <Card className="p-6">
-                        <div className="flex items-center justify-between mb-4">
-                            <h3 className="font-bold text-foreground">Recent Registrations</h3>
-                            <button onClick={() => setActiveTab('attendees')} className="text-xs font-bold text-primary hover:text-primary/80">View All</button>
-                        </div>
-                        <div className="space-y-4">
-                             {attendeesPreview.map((attendee: any) => (
-                                 <div key={attendee.id} className="flex items-center gap-3">
-                                      <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center text-xs font-bold text-muted-foreground">
-                                          {attendee.name.charAt(0)}
-                                      </div>
-                                      <div className="flex-1 min-w-0">
-                                          <p className="font-medium text-sm text-foreground truncate">{attendee.name}</p>
-                                          <p className="text-xs text-muted-foreground truncate">{attendee.ticket_type}</p>
-                                      </div>
-                                      <span className="text-xs text-muted-foreground">{new Date(attendee.date).toLocaleDateString()}</span>
-                                 </div>
-                             ))}
-                             {attendeesPreview.length === 0 && <p className="text-sm text-muted-foreground text-center py-4">No attendees yet.</p>}
-                        </div>
-                     </Card>
-                </div>
-            </div>
-        )}
-
-        {activeTab === 'attendees' && (
-             <Card className="overflow-hidden">
-                 <div className="p-4 border-b border-border flex flex-col md:flex-row md:items-center justify-between gap-4">
-                      <div className="relative flex-1 max-w-sm">
-                          <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
-                          <input 
-                              type="text" 
-                              placeholder="Search attendees..." 
-                              value={searchQuery}
-                              onChange={(e) => { setSearchQuery(e.target.value); setAttendeesPage(1); }}
-                              className="w-full pl-9 pr-4 py-2 bg-muted/50 border-none rounded-lg text-sm focus:ring-1 focus:ring-primary text-foreground placeholder:text-muted-foreground"
-                          />
-                      </div>
-                      <Button variant="outline" className="gap-2">
-                          <Download className="w-4 h-4" /> Export CSV
-                      </Button>
-                 </div>
-                 <div className="overflow-x-auto">
-                     <table className="w-full text-left text-sm text-muted-foreground">
-                         <thead className="bg-muted/50 text-muted-foreground font-bold uppercase text-[10px]">
-                             <tr>
-                                 <th className="px-6 py-4">Name</th>
-                                 <th className="px-6 py-4">Email</th>
-                                 <th className="px-6 py-4">Ticket Type</th>
-                                 <th className="px-6 py-4">Price</th>
-                                 <th className="px-6 py-4">Date</th>
-                                 <th className="px-6 py-4">Status</th>
-                                 <th className="px-6 py-4 text-right">Actions</th>
-                             </tr>
-                         </thead>
-                         <tbody className="divide-y divide-border">
-                             {attendeesLoading ? (
-                                 <tr>
-                                     <td colSpan={7} className="px-6 py-8 text-center text-muted-foreground">Loading attendees...</td>
-                                 </tr>
-                             ) : attendeesList.map((a: any) => (
-                                 <tr key={a.id} className="hover:bg-accent/50">
-                                     <td className="px-6 py-4 font-medium text-foreground">{a.name}</td>
-                                     <td className="px-6 py-4">{a.email}</td>
-                                     <td className="px-6 py-4">
-                                         <span className="px-2 py-1 rounded bg-violet-500/10 text-violet-600 text-xs font-bold">{a.ticket_type}</span>
-                                     </td>
-                                     <td className="px-6 py-4">{formatCurrency(a.price)}</td>
-                                     <td className="px-6 py-4">{new Date(a.date).toLocaleDateString()}</td>
-                                     <td className="px-6 py-4">
-                                         <div className="flex items-center gap-1 text-emerald-600 text-xs font-bold">
-                                             <CheckCircle2 className="w-3 h-3" /> Paid
-                                         </div>
-                                     </td>
-                                     <td className="px-6 py-4 text-right">
-                                         <button 
-                                            onClick={() => initiateRefund(a.id)}
-                                            className="text-xs font-bold text-destructive hover:text-destructive/80 hover:underline"
-                                         >
-                                            Refund
-                                         </button>
-                                     </td>
-                                 </tr>
-                             ))}
-                             {!attendeesLoading && attendeesList.length === 0 && (
-                                 <tr>
-                                     <td colSpan={7} className="px-6 py-8 text-center text-muted-foreground">
-                                         No attendees found.
-                                     </td>
-                                 </tr>
-                             )}
-                         </tbody>
-                     </table>
-                 </div>
-                 
-                 {/* Pagination Controls */}
-                 {attendeesPagination.last_page > 1 && (
-                    <div className="flex items-center justify-between px-6 py-4 border-t border-border bg-muted/20">
-                        <div className="text-xs text-muted-foreground">
-                            Showing {(attendeesPagination.current_page - 1) * attendeesPagination.per_page + 1} to {Math.min(attendeesPagination.current_page * attendeesPagination.per_page, attendeesPagination.total)} of {attendeesPagination.total} results
-                        </div>
-                        <div className="flex gap-2">
-                             <Button 
-                                variant="outline" 
-                                size="sm" 
-                                onClick={() => setAttendeesPage(p => Math.max(1, p - 1))}
-                                disabled={attendeesPage <= 1 || attendeesLoading}
-                            >
-                                Previous
-                            </Button>
-                            <Button 
-                                variant="outline" 
-                                size="sm" 
-                                onClick={() => setAttendeesPage(p => Math.min(attendeesPagination.last_page, p + 1))}
-                                disabled={attendeesPage >= attendeesPagination.last_page || attendeesLoading}
-                            >
-                                Next
-                            </Button>
-                        </div>
+        {activeTab === "overview" && (
+          <div className="space-y-6">
+            {/* Stats Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <Card className="p-6">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
+                  <div className="flex items-start gap-3">
+                    <div className="w-8 h-8 rounded-full bg-violet-500/10 flex items-center justify-center shrink-0 text-violet-600">
+                      <DollarSign className="w-4 h-4" />
                     </div>
-                 )}
-             </Card>
+                    <span className="text-sm font-medium text-muted-foreground whitespace-nowrap">
+                      Financial Overview
+                    </span>
+                  </div>
+                </div>
+
+                <div className="space-y-3">
+                  <div className="flex justify-between items-center text-sm">
+                    <span className="text-muted-foreground">
+                      Total Sales (Gross)
+                    </span>
+                    <span className="font-bold text-foreground">
+                      {formatCurrency(stats.revenue || 0)}
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center text-sm">
+                    <span className="text-muted-foreground">
+                      Already Withdrawn
+                    </span>
+                    <span className="font-bold text-orange-600">
+                      -{formatCurrency(stats.already_withdrawn || 0)}
+                    </span>
+                  </div>
+                  <div className="pt-2 border-t border-dashed border-border flex justify-between items-center">
+                    <span className="text-sm font-medium text-foreground">
+                      Next Scheduled Payout
+                    </span>
+                    <span className="text-xl font-bold text-primary">
+                      {formatCurrency(
+                        Math.max(
+                          0,
+                          (stats.revenue || 0) - (stats.already_withdrawn || 0),
+                        ),
+                      )}
+                    </span>
+                  </div>
+                  {(() => {
+                    const tier = stats.tier;
+                    const daysUntil = stats.days_until_event;
+
+                    // No tier or 0% withdrawal
+                    if (!tier || tier.withdrawal_percent <= 0) {
+                      return (
+                        <p className="text-[10px] text-muted-foreground text-right italic mt-2">
+                          * Early withdrawal is not available for your current trust tier.
+                        </p>
+                      );
+                    }
+
+                    // Tier exists but event is too far away
+                    if (tier.days_prior > 0 && daysUntil > tier.days_prior) {
+                      return (
+                        <p className="text-[10px] text-muted-foreground text-right italic mt-2">
+                          * Early withdrawal opens {tier.days_prior} day{tier.days_prior !== 1 ? 's' : ''} before the event ({tier.name} tier).
+                        </p>
+                      );
+                    }
+
+                    // Within window and has withdrawable amount
+                    if (stats.withdrawable > 0) {
+                      return (
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
+                          <p className="text-[10px] text-muted-foreground text-right italic">
+                            * {formatCurrency(stats.withdrawable)} available for
+                            early withdrawal
+                          </p>
+                          <Button
+                            size="sm"
+                            onClick={() => setWithdrawalModalOpen(true)}
+                            className="h-8 rounded-lg text-xs w-full sm:w-auto whitespace-nowrap"
+                          >
+                            Request Withdrawal
+                          </Button>
+                        </div>
+                      );
+                    }
+
+                    return null;
+                  })()}
+                </div>
+              </Card>
+
+              <Card className="p-6">
+                <div className="flex items-center gap-3 mb-2">
+                  <div className="w-8 h-8 rounded-full bg-blue-500/10 flex items-center justify-center text-blue-600">
+                    <Ticket className="w-4 h-4" />
+                  </div>
+                  <span className="text-sm font-medium text-muted-foreground">
+                    Tickets Sold
+                  </span>
+                </div>
+                <h2 className="text-2xl font-bold text-foreground">
+                  {stats.tickets_sold}
+                </h2>
+              </Card>
+
+              <Card className="p-6">
+                <div className="flex items-center gap-3 mb-2">
+                  <div className="w-8 h-8 rounded-full bg-orange-500/10 flex items-center justify-center text-orange-600">
+                    <Users className="w-4 h-4" />
+                  </div>
+                  <span className="text-sm font-medium text-muted-foreground">
+                    Attendees
+                  </span>
+                </div>
+                <h2 className="text-2xl font-bold text-foreground">
+                  {stats.tickets_sold}
+                </h2>
+              </Card>
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+              {/* Ticket Sales Breakdown */}
+              <Card className="p-6">
+                <h3 className="font-bold text-foreground mb-4">
+                  Ticket Sales by Type
+                </h3>
+                <div className="space-y-4">
+                  {tickets.map((t: any) => (
+                    <div
+                      key={t.id}
+                      className="flex items-center justify-between"
+                    >
+                      <div>
+                        <p className="font-medium text-sm text-foreground">
+                          {t.title}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          {t.sold} / {t.quantity} sold
+                        </p>
+                      </div>
+                      <div className="text-right">
+                        <p className="font-bold text-sm text-foreground">
+                          {formatCurrency(t.revenue)}
+                        </p>
+                        <div className="w-24 h-1.5 bg-muted rounded-full mt-1 overflow-hidden">
+                          <div
+                            className="h-full bg-primary rounded-full"
+                            style={{ width: `${(t.sold / t.quantity) * 100}%` }}
+                          ></div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </Card>
+
+              {/* Recent Attendees Preview */}
+              <Card className="p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="font-bold text-foreground">
+                    Recent Registrations
+                  </h3>
+                  <button
+                    onClick={() => setActiveTab("attendees")}
+                    className="text-xs font-bold text-primary hover:text-primary/80"
+                  >
+                    View All
+                  </button>
+                </div>
+                <div className="space-y-4">
+                  {attendeesPreview.map((attendee: any) => (
+                    <div key={attendee.id} className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center text-xs font-bold text-muted-foreground">
+                        {attendee.name.charAt(0)}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium text-sm text-foreground truncate">
+                          {attendee.name}
+                        </p>
+                        <p className="text-xs text-muted-foreground truncate">
+                          {attendee.ticket_type}
+                        </p>
+                      </div>
+                      <span className="text-xs text-muted-foreground">
+                        {new Date(attendee.date).toLocaleDateString()}
+                      </span>
+                    </div>
+                  ))}
+                  {attendeesPreview.length === 0 && (
+                    <p className="text-sm text-muted-foreground text-center py-4">
+                      No attendees yet.
+                    </p>
+                  )}
+                </div>
+              </Card>
+            </div>
+          </div>
         )}
 
-        {activeTab === 'tickets' && (
-             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                 {tickets.map((ticket: any) => (
-                     <Card key={ticket.id} className="p-6 relative overflow-hidden">
-                          <div className="flex justify-between items-start mb-4">
-                              <div className="w-10 h-10 rounded-full bg-violet-500/10 flex items-center justify-center text-violet-600">
-                                  <Ticket className="w-5 h-5" />
-                              </div>
-                              <span className={`px-2 py-1 text-xs font-bold rounded ${ticket.sold >= ticket.quantity ? 'bg-destructive/10 text-destructive' : 'bg-emerald-500/10 text-emerald-600'}`}>
-                                  {ticket.sold >= ticket.quantity ? 'Sold Out' : 'Available'}
-                              </span>
+        {activeTab === "attendees" && (
+          <Card className="overflow-hidden">
+            <div className="p-4 border-b border-border flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <div className="relative flex-1 max-w-sm">
+                <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+                <input
+                  type="text"
+                  placeholder="Search attendees..."
+                  value={searchQuery}
+                  onChange={(e) => {
+                    setSearchQuery(e.target.value);
+                    setAttendeesPage(1);
+                  }}
+                  className="w-full pl-9 pr-4 py-2 bg-muted/50 border-none rounded-lg text-sm focus:ring-1 focus:ring-primary text-foreground placeholder:text-muted-foreground"
+                />
+              </div>
+              <Button variant="outline" className="gap-2">
+                <Download className="w-4 h-4" /> Export CSV
+              </Button>
+            </div>
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-sm text-muted-foreground">
+                <thead className="bg-muted/50 text-muted-foreground font-bold uppercase text-[10px]">
+                  <tr>
+                    <th className="px-6 py-4">Name</th>
+                    <th className="px-6 py-4">Email</th>
+                    <th className="px-6 py-4">Ticket Type</th>
+                    <th className="px-6 py-4">Price</th>
+                    <th className="px-6 py-4">Date</th>
+                    <th className="px-6 py-4">Status</th>
+                    <th className="px-6 py-4 text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-border">
+                  {attendeesLoading ? (
+                    <tr>
+                      <td
+                        colSpan={7}
+                        className="px-6 py-8 text-center text-muted-foreground"
+                      >
+                        Loading attendees...
+                      </td>
+                    </tr>
+                  ) : (
+                    attendeesList.map((a: any) => (
+                      <tr key={a.id} className="hover:bg-accent/50">
+                        <td className="px-6 py-4 font-medium text-foreground">
+                          {a.name}
+                        </td>
+                        <td className="px-6 py-4">{a.email}</td>
+                        <td className="px-6 py-4">
+                          <span className="px-2 py-1 rounded bg-violet-500/10 text-violet-600 text-xs font-bold">
+                            {a.ticket_type}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4">{formatCurrency(a.price)}</td>
+                        <td className="px-6 py-4">
+                          {new Date(a.date).toLocaleDateString()}
+                        </td>
+                        <td className="px-6 py-4">
+                          <div className="flex items-center gap-1 text-emerald-600 text-xs font-bold">
+                            <CheckCircle2 className="w-3 h-3" /> Paid
                           </div>
-                          <h3 className="font-bold text-lg mb-1 text-foreground">{ticket.title}</h3>
-                          <p className="text-2xl font-bold text-primary mb-4">{formatCurrency(ticket.price)}</p>
-                          
-                          <div className="space-y-2 text-sm text-muted-foreground">
-                               <div className="flex justify-between">
-                                   <span>Sold</span>
-                                   <span className="font-medium text-foreground">{ticket.sold}</span>
-                               </div>
-                               <div className="flex justify-between">
-                                   <span>Capacity</span>
-                                   <span className="font-medium text-foreground">{ticket.quantity}</span>
-                               </div>
-                               <div className="w-full h-1.5 bg-muted rounded-full mt-2 overflow-hidden">
-                                   <div className="h-full bg-primary rounded-full" style={{ width: `${(ticket.sold / ticket.quantity) * 100}%`}}></div>
-                               </div>
-                          </div>
-                     </Card>
-                 ))}
-             </div>
+                        </td>
+                        <td className="px-6 py-4 text-right">
+                          <button
+                            onClick={() => initiateRefund(a.id)}
+                            className="text-xs font-bold text-destructive hover:text-destructive/80 hover:underline"
+                          >
+                            Refund
+                          </button>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                  {!attendeesLoading && attendeesList.length === 0 && (
+                    <tr>
+                      <td
+                        colSpan={7}
+                        className="px-6 py-8 text-center text-muted-foreground"
+                      >
+                        No attendees found.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Pagination Controls */}
+            {attendeesPagination.last_page > 1 && (
+              <div className="flex items-center justify-between px-6 py-4 border-t border-border bg-muted/20">
+                <div className="text-xs text-muted-foreground">
+                  Showing{" "}
+                  {(attendeesPagination.current_page - 1) *
+                    attendeesPagination.per_page +
+                    1}{" "}
+                  to{" "}
+                  {Math.min(
+                    attendeesPagination.current_page *
+                      attendeesPagination.per_page,
+                    attendeesPagination.total,
+                  )}{" "}
+                  of {attendeesPagination.total} results
+                </div>
+                <div className="flex gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setAttendeesPage((p) => Math.max(1, p - 1))}
+                    disabled={attendeesPage <= 1 || attendeesLoading}
+                  >
+                    Previous
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() =>
+                      setAttendeesPage((p) =>
+                        Math.min(attendeesPagination.last_page, p + 1),
+                      )
+                    }
+                    disabled={
+                      attendeesPage >= attendeesPagination.last_page ||
+                      attendeesLoading
+                    }
+                  >
+                    Next
+                  </Button>
+                </div>
+              </div>
+            )}
+          </Card>
         )}
 
+        {activeTab === "tickets" && (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {tickets.map((ticket: any) => (
+              <Card key={ticket.id} className="p-6 relative overflow-hidden">
+                <div className="flex justify-between items-start mb-4">
+                  <div className="w-10 h-10 rounded-full bg-violet-500/10 flex items-center justify-center text-violet-600">
+                    <Ticket className="w-5 h-5" />
+                  </div>
+                  <span
+                    className={`px-2 py-1 text-xs font-bold rounded ${ticket.sold >= ticket.quantity ? "bg-destructive/10 text-destructive" : "bg-emerald-500/10 text-emerald-600"}`}
+                  >
+                    {ticket.sold >= ticket.quantity ? "Sold Out" : "Available"}
+                  </span>
+                </div>
+                <h3 className="font-bold text-lg mb-1 text-foreground">
+                  {ticket.title}
+                </h3>
+                <p className="text-2xl font-bold text-primary mb-4">
+                  {formatCurrency(ticket.price)}
+                </p>
+
+                <div className="space-y-2 text-sm text-muted-foreground">
+                  <div className="flex justify-between">
+                    <span>Sold</span>
+                    <span className="font-medium text-foreground">
+                      {ticket.sold}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Capacity</span>
+                    <span className="font-medium text-foreground">
+                      {ticket.quantity}
+                    </span>
+                  </div>
+                  <div className="w-full h-1.5 bg-muted rounded-full mt-2 overflow-hidden">
+                    <div
+                      className="h-full bg-primary rounded-full"
+                      style={{
+                        width: `${(ticket.sold / ticket.quantity) * 100}%`,
+                      }}
+                    ></div>
+                  </div>
+                </div>
+              </Card>
+            ))}
+          </div>
+        )}
       </div>
 
-      <WithdrawalLimitModal 
-         isOpen={withdrawalModalOpen} 
-         onClose={() => setWithdrawalModalOpen(false)} 
-         eventId={eventId} 
+      <WithdrawalLimitModal
+        isOpen={withdrawalModalOpen}
+        onClose={() => setWithdrawalModalOpen(false)}
+        eventId={eventId}
       />
 
       <ConfirmationModal

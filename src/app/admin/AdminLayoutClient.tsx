@@ -21,7 +21,7 @@ export default function AdminLayoutClient({
             <AdminSidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
             
             {/* Mobile Header */}
-            <div className="md:hidden fixed top-0 left-0 right-0 h-16 bg-white border-b border-border z-30 flex items-center px-4 justify-between">
+            <div className="md:hidden fixed top-0 left-0 right-0 h-16 bg-card text-card-foreground border-b border-border z-30 flex items-center px-4 justify-between">
                 <div className="flex items-center gap-2">
                     <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center text-white font-bold text-xs">MI</div>
                     <span className="font-bold text-foreground">Admin</span>
