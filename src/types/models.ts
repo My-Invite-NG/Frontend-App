@@ -79,6 +79,7 @@ export interface Event {
     media?: EventMedia[];
     purchased_tickets_count?: number;
     total_revenue?: number;
+    absorb_fees?: boolean;
 }
 
 export interface PurchasedTicket {
@@ -236,4 +237,15 @@ export interface Bank {
     name: string;
     code: string;
     active: boolean;
+}
+
+export interface ContactMessage {
+    id: number;
+    name: string;
+    email: string;
+    subject: string;
+    message: string;
+    status: 'unread' | 'read' | 'replied';
+    created_at: string;
+    updated_at: string;
 }

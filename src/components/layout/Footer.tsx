@@ -28,6 +28,7 @@ export default function Footer() {
                 <h4 className="text-white font-bold mb-6">Company</h4>
                 <ul className="space-y-3 text-sm">
                     <li><Link href="/about" className="hover:text-white transition-colors">About</Link></li>
+                    <li><Link href="/pricing" className="hover:text-white transition-colors">Pricing</Link></li>
                     <li><Link href="/careers" className="hover:text-white transition-colors">Careers</Link></li>
                     <li><Link href="/blog" className="hover:text-white transition-colors">Blog</Link></li>
                     <li><Link href="/press" className="hover:text-white transition-colors">Press</Link></li>
@@ -37,10 +38,10 @@ export default function Footer() {
              <div>
                 <h4 className="text-white font-bold mb-6">Resources</h4>
                 <ul className="space-y-3 text-sm">
-                    <li><Link href="/help" className="hover:text-white transition-colors">Event Guidelines</Link></li>
-                    <li><Link href="/terms" className="hover:text-white transition-colors">Host Center</Link></li>
-                    <li><Link href="/privacy" className="hover:text-white transition-colors">Organizer Resources</Link></li>
-                    <li><Link href="/sitemap" className="hover:text-white transition-colors">Game Partners</Link></li>
+                    <li><Link href="/help" className="hover:text-white transition-colors">Help Center</Link></li>
+                    <li><Link href="/terms" className="hover:text-white transition-colors">Event Guidelines</Link></li>
+                    <li><Link href="/privacy" className="hover:text-white transition-colors">Host Center</Link></li>
+                    <li><Link href="/sitemap" className="hover:text-white transition-colors">Organizer Resources</Link></li>
                 </ul>
             </div>
 

@@ -10,10 +10,17 @@ import {
   Ticket as TicketIcon,
   Loader2,
   Home,
+  AlertCircle, // Added
+  QrCode, // Added
+  ArrowRight, // Added
+  Mail, // Added
+  Bell, // Added
 } from "lucide-react";
+import { toast } from "sonner"; // Added
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
+import { userApi } from "@/api/user";
 import { QRCodeSVG } from "qrcode.react";
 import { paymentApi } from "@/api/payment";
 import { Transaction } from "@/types/models";
@@ -26,6 +33,48 @@ function VerifyContent() {
 
   const [loading, setLoading] = useState(true);
   const [transaction, setTransaction] = useState<Transaction | null>(null);
+  const [isReminded, setIsReminded] = useState(false); // Added
+
+  const handleDownload = () => {
+    toast.info("Downloading ticket...");
+  };
+
+  const handleAddToCalendar = (type: 'google' | 'apple' | 'outlook') => {
+    if (!transaction || !transaction.purchased_tickets?.[0]?.event) {
+      toast.error("Event details not available to add to calendar.");
+      return;
+    }
+    const event = transaction.purchased_tickets[0].event;
+    const title = encodeURIComponent(event.title);
+    const details = encodeURIComponent(`Your ticket for ${event.title}. Location: ${event.location}`);
+    const location = encodeURIComponent(event.location);
+    const startDate = new Date(event.start_date).toISOString().replace(/-|:|\.\d\d\d/g, "");
+    const endDate = new Date(event.end_date || event.start_date).toISOString().replace(/-|:|\.\d\d\d/g, "");
+
+    let url = "";
+    if (type === 'google') {
+      url = `https://www.google.com/calendar/render?action=TEMPLATE&text=${title}&dates=${startDate}/${endDate}&details=${details}&location=${location}`;
+      window.open(url, '_blank');
+    } else {
+      // Placeholder for Apple/Outlook (.ics generation or generic link)
+      toast.info(`${type.toUpperCase()} calendar integration coming soon. For now, please use Google Calendar.`);
+    }
+  };
+
+  const handleReminder = async (type: string) => {
+    if (!transaction || !transaction.purchased_tickets?.[0]?.event_id) return;
+    try {
+      await userApi.setReminder({
+        event_id: transaction.purchased_tickets[0].event_id,
+        type: type,
+        remind_at: transaction.purchased_tickets[0].event?.start_date
+      });
+      setIsReminded(true);
+      toast.success(`Reminder set via ${type}! We'll notify you before the event.`);
+    } catch (error) {
+      toast.error("Failed to set reminder. Please try again later.");
+    }
+  };
 
   useEffect(() => {
     if (reference && status === "success") {

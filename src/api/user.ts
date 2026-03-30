@@ -25,5 +25,9 @@ export const userApi = {
     async updatePin(data: any): Promise<{ message: string }> {
         const response = await client.post<ApiResponse<{ message: string }>>('/user/pin/update', data);
         return response.data.data;
+    },
+    async setReminder(data: { event_id: number | string; type: string; remind_at?: string }): Promise<{ message: string }> {
+        const response = await client.post<ApiResponse<{ message: string }>>('/user/reminders', data);
+        return response.data.data;
     }
 };

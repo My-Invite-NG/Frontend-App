@@ -7,36 +7,47 @@ export function cn(...inputs: ClassValue[]) {
 
 export function formatCurrency(value: number | string): string {
     const amount = typeof value === 'string' ? parseFloat(value) : value;
-    return new Intl.NumberFormat('en-US', {
+    return new Intl.NumberFormat('en-NG', {
         style: 'currency',
-        currency: 'USD',
+        currency: 'NGN',
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0,
     }).format(amount || 0);
 }
 
 export function getPriceRange(event: any): string {
+    if (!event) return 'Free';
+    
     if (event.free || (event.tickets && event.tickets.length > 0 && event.tickets.every((t: any) => parseFloat(t.price) === 0))) {
         return 'Free';
     }
   
-    if (event.min_price !== undefined && event.max_price !== undefined) {
-         if (parseFloat(event.min_price) === parseFloat(event.max_price)) {
-             return formatCurrency(event.min_price);
+    // Check if event has min/max price pre-calculated
+    if (event.min_price !== undefined && event.max_price !== undefined && event.min_price !== null) {
+         const min = parseFloat(event.min_price);
+         const max = parseFloat(event.max_price);
+         if (min === max) {
+             return min === 0 ? 'Free' : formatCurrency(min);
          }
-         return `${formatCurrency(event.min_price)} - ${formatCurrency(event.max_price)}`;
+         return `${formatCurrency(min)} - ${formatCurrency(max)}`;
     }
   
+    // Fallback to searching tickets
     if (event.tickets && event.tickets.length > 0) {
-        const prices = event.tickets.map((t: any) => parseFloat(t.price));
-        const min = Math.min(...prices);
-        const max = Math.max(...prices);
-        if (min === max) {
-            return formatCurrency(min);
+        const prices = event.tickets.map((t: any) => parseFloat(t.price)).filter((p: number) => !isNaN(p));
+        if (prices.length > 0) {
+            const min = Math.min(...prices);
+            const max = Math.max(...prices);
+            if (min === max) {
+                return min === 0 ? 'Free' : formatCurrency(min);
+            }
+            return `${formatCurrency(min)} - ${formatCurrency(max)}`;
         }
-        return `${formatCurrency(min)} - ${formatCurrency(max)}`;
     }
   
     if (event.price) {
-        return formatCurrency(event.price);
+        const p = parseFloat(event.price);
+        return p === 0 ? 'Free' : formatCurrency(p);
     }
   
     return 'Free';

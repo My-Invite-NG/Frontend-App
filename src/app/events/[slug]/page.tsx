@@ -7,6 +7,7 @@ import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { eventsApi } from "@/api/events";
 import { formatCurrency } from "@/lib/utils";
+import { toast } from "sonner";
 
 export default function EventDetailsPage() {
   const { slug } = useParams();
@@ -80,6 +81,21 @@ export default function EventDetailsPage() {
   const paymentUrl = `/payment?event=${slug}&tickets=${encodeURIComponent(
     JSON.stringify(ticketCounts)
   )}`;
+
+  const handleShare = () => {
+    const shareData = {
+      title: event.title,
+      text: `Check out ${event.title} on MyInvite!`,
+      url: window.location.href,
+    };
+
+    if (navigator.share) {
+      navigator.share(shareData).catch(console.error);
+    } else {
+      navigator.clipboard.writeText(window.location.href);
+      toast.success("Link copied to clipboard!");
+    }
+  };
 
   if (loading) {
     return (
@@ -212,7 +228,10 @@ export default function EventDetailsPage() {
               </div>
             </div>
             <div>
-              <button className="flex items-center gap-2 px-4 py-2.5 bg-background border border-border rounded-lg text-sm font-medium text-foreground hover:bg-muted transition-colors shadow-sm">
+              <button 
+                onClick={handleShare}
+                className="flex items-center gap-2 px-4 py-2.5 bg-background border border-border rounded-lg text-sm font-medium text-foreground hover:bg-muted transition-colors shadow-sm"
+              >
                 <Share2 className="w-4 h-4" />
                 Share
               </button>

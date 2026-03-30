@@ -52,7 +52,16 @@ export default function CreateEventPage() {
     lat: null as number | null,
     lng: null as number | null,
     tags: [] as string[],
+    absorb_fees: false,
   });
+
+  const [fees, setFees] = useState({ service: 5, tax: 8 });
+
+  useEffect(() => {
+    eventsApi.getPricingMeta().then(data => {
+        if(data) setFees({ service: data.service_fee_percentage, tax: data.tax_percentage });
+    }).catch(console.error);
+  }, []);
 
   const [mediaFiles, setMediaFiles] = useState<File[]>([]);
   const [mediaPreviews, setMediaPreviews] = useState<
@@ -171,6 +180,7 @@ export default function CreateEventPage() {
       submissionData.append("location", formData.location);
       if (formData.lat) submissionData.append("lat", String(formData.lat));
       if (formData.lng) submissionData.append("lng", String(formData.lng));
+      submissionData.append("absorb_fees", formData.absorb_fees ? "1" : "0");
       
       formData.tags.forEach((tag) => {
         submissionData.append("tags[]", tag);
@@ -515,6 +525,66 @@ export default function CreateEventPage() {
               >
                 <Plus className="w-4 h-4" /> Add Ticket Type
               </button>
+
+              {/* Fee Absorption Toggle */}
+              <div className="mt-8 p-6 rounded-2xl bg-primary/5 border border-primary/10">
+                <div className="flex items-center justify-between mb-4">
+                  <div>
+                    <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
+                        Absorb Platform Fees 
+                        <span className="px-2 py-0.5 bg-primary/10 text-primary text-[10px] rounded-full uppercase tracking-tighter">Pro</span>
+                    </h3>
+                    <p className="text-xs text-muted-foreground mt-1">
+                        If enabled, you pay the {fees.service + fees.tax}% platform fee from your revenue. Attendees pay exactly the ticket price.
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setFormData({...formData, absorb_fees: !formData.absorb_fees})}
+                    className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${formData.absorb_fees ? 'bg-primary' : 'bg-input'}`}
+                  >
+                    <span
+                        className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${formData.absorb_fees ? 'translate-x-5' : 'translate-x-0'}`}
+                    />
+                  </button>
+                </div>
+
+                {/* Price Preview */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
+                    {tickets.filter(t => t.price && parseFloat(t.price) > 0).slice(0, 1).map((t, i) => {
+                        const price = parseFloat(t.price);
+                        const feeAmt = price * ((fees.service + fees.tax) / 100);
+                        return (
+                            <div key={i} className="bg-background rounded-xl p-4 border border-border">
+                                <span className="text-[10px] font-black uppercase text-muted-foreground tracking-widest block mb-2">Example: {t.type || 'Ticket'}</span>
+                                <div className="flex justify-between items-end">
+                                    <div>
+                                        <p className="text-xs text-muted-foreground">Attendee Pays</p>
+                                        <p className="text-xl font-black text-foreground">₦{(formData.absorb_fees ? price : price + feeAmt).toLocaleString()}</p>
+                                    </div>
+                                    <div className="text-right">
+                                        <p className="text-xs text-muted-foreground">You Receive</p>
+                                        <p className="text-xl font-black text-primary">₦{(formData.absorb_fees ? price - feeAmt : price).toLocaleString()}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        );
+                    })}
+                    {tickets.every(t => !t.price || parseFloat(t.price) === 0) && (
+                        <div className="bg-emerald-500/5 rounded-xl p-4 border border-emerald-500/20 col-span-2">
+                             <div className="flex items-center gap-3">
+                                <div className="w-8 h-8 rounded-full bg-emerald-500/10 flex items-center justify-center">
+                                    <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+                                </div>
+                                <div>
+                                    <p className="text-sm font-bold text-emerald-700">Free Event detected</p>
+                                    <p className="text-xs text-emerald-600/80">Platform fees are ₦0 for free events. Enjoy!</p>
+                                </div>
+                             </div>
+                        </div>
+                    )}
+                </div>
+              </div>
             </div>
           </div>
 

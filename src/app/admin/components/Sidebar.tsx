@@ -4,45 +4,46 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 import {
+  X,
   LayoutDashboard,
   Calendar,
+  Ticket,
   Users,
-  DollarSign,
   Settings,
-  ShieldCheck,
+  HelpCircle,
   MessageSquare,
-  ChevronDown,
+  LogOut,
   ChevronRight,
-  List,
-  Lock,
-  Sliders,
+  ShieldCheck,
+  CreditCard,
+  PieChart,
+  Mail,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ThemeToggle } from "@/components/ThemeToggle";
 
+interface SidebarProps {
+  isOpen?: boolean;
+  onClose?: () => void;
+}
+
 const links = [
   { href: "/admin/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { href: "/admin/events", label: "Events", icon: Calendar },
+  { href: "/admin/tickets", label: "Tickets", icon: Ticket },
   { href: "/admin/users", label: "Users", icon: Users },
-  { href: "/admin/financials", label: "Financials", icon: DollarSign },
-  { href: "/admin/support", label: "Support", icon: MessageSquare },
-  {
-    label: "Settings",
-    icon: Settings,
-    href: "/admin/settings",
-    submenu: [
-      { href: "/admin/settings/categories", label: "Categories", icon: List },
-      { href: "/admin/settings/security", label: "Security", icon: Lock },
-      { href: "/admin/settings/config", label: "Configuration", icon: Sliders },
-      { href: "/admin/settings/trust", label: "Trust Score", icon: ShieldCheck },
-    ],
-  },
+  { href: "/admin/financials", label: "Financials", icon: CreditCard },
+  { href: "/admin/reports", label: "Reports", icon: PieChart },
+  { href: "/admin/settings", label: "Settings", icon: Settings },
+  { href: "/admin/support", label: "Help & Support", icon: HelpCircle },
+  { href: "/admin/contact", label: "Contact Inquiries", icon: Mail },
+  { href: "/admin/logout", label: "Logout", icon: LogOut },
 ];
 
-export default function AdminSidebar() {
+export default function AdminSidebar({ isOpen, onClose }: SidebarProps) {
   const pathname = usePathname();
   const [openSubmenus, setOpenSubmenus] = useState<Record<string, boolean>>({
-    Settings: true, // Default open for visibility
+    // Settings: true, // Default open for visibility - Removed as settings is no longer a submenu
   });
 
   const toggleSubmenu = (label: string) => {
@@ -50,16 +51,41 @@ export default function AdminSidebar() {
   };
 
   return (
-    <aside className="w-64 bg-card border-r border-border min-h-screen hidden md:flex flex-col shadow-sm z-10 transition-colors">
-      <div className="h-16 flex items-center gap-3 px-6 border-b border-border">
-        <div className="bg-primary p-1.5 rounded-lg shadow-sm">
-          <ShieldCheck className="w-5 h-5 text-primary-foreground" />
+    <>
+      {/* Overlay */}
+      {isOpen && (
+        <div
+          className="fixed inset-0 bg-black/50 z-40 md:hidden backdrop-blur-sm transition-all"
+          onClick={onClose}
+        />
+      )}
+
+      <div className={`
+        fixed inset-y-0 left-0 z-50 w-72 bg-white border-r border-border flex flex-col h-full transition-transform duration-300 ease-in-out
+        ${isOpen ? 'translate-x-0' : '-translate-x-full'}
+        md:translate-x-0 md:static md:flex shrink-0
+      `}>
+        <div className="p-6 border-b border-border flex items-center justify-between">
+          <Link href="/admin" className="flex items-center gap-3 group">
+            <div className="w-10 h-10 bg-primary/10 rounded-xl flex items-center justify-center group-hover:bg-primary/20 transition-colors">
+              <ShieldCheck className="w-6 h-6 text-primary" />
+            </div>
+            <div>
+              <h1 className="text-lg font-bold text-foreground leading-tight">
+                MyInvite
+              </h1>
+              <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
+                Admin Portal
+              </p>
+            </div>
+          </Link>
+          <button
+            onClick={onClose}
+            className="md:hidden p-2 text-muted-foreground hover:text-foreground hover:bg-muted rounded-lg transition-colors"
+          >
+            <X className="w-5 h-5" />
+          </button>
         </div>
-        <span className="font-bold text-lg text-foreground tracking-tight">
-          Admin
-          <span className="text-primary">Portal</span>
-        </span>
-      </div>
 
       <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
         {links.map((link) => {
@@ -96,7 +122,7 @@ export default function AdminSidebar() {
                     {link.label}
                   </div>
                   {isSubmenuOpen ? (
-                    <ChevronDown className="w-4 h-4 text-slate-400" />
+                    <ChevronRight className="w-4 h-4 text-slate-400 rotate-90" />
                   ) : (
                     <ChevronRight className="w-4 h-4 text-slate-400" />
                   )}
@@ -185,6 +211,7 @@ export default function AdminSidebar() {
           </div>
         </div>
       </div>
-    </aside>
+    </div>
+    </>
   );
 }

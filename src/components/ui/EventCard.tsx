@@ -1,6 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { MapPin, Calendar } from "lucide-react";
+import { getPriceRange } from "@/lib/utils";
 
 interface EventCardProps {
   id: string;
@@ -8,10 +9,9 @@ interface EventCardProps {
   title: string;
   location: string;
   date: string;
-  image?: string;
-  priceRange: string;
-  category: string;
-  className?: string; // Added className prop
+  priceRange?: string; // Change to optional
+  tickets?: any[];     // Add tickets to props
+  className?: string;
 }
 
 export default function EventCard({
@@ -22,9 +22,11 @@ export default function EventCard({
   date,
   image,
   priceRange,
+  tickets,
   category,
   className = "",
 }: EventCardProps) {
+  const displayPrice = tickets ? getPriceRange({ tickets }) : priceRange || "Free";
   return (
     <div
       className={`bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100 group ${className}`}
@@ -71,7 +73,7 @@ export default function EventCard({
         </div>
 
         <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-50">
-          <div className="text-gray-900 font-bold">{priceRange}</div>
+          <div className="text-gray-900 font-bold">{displayPrice}</div>
           <Link
             href={`/events/${slug || id}`}
             className="px-4 py-2 bg-violet-50 text-violet-600 text-sm font-semibold rounded-lg hover:bg-violet-600 hover:text-white transition-all"

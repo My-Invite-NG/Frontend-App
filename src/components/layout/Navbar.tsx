@@ -34,6 +34,9 @@ export default function Navbar() {
              <Link href="/events" className="text-gray-600 hover:text-violet-600 font-medium transition-colors">
               Events
             </Link>
+             <Link href="/pricing" className="text-gray-600 hover:text-violet-600 font-medium transition-colors">
+              Pricing
+            </Link>
              <Link href="/contact" className="text-gray-600 hover:text-violet-600 font-medium transition-colors">
               Contact
             </Link>
@@ -107,6 +110,20 @@ export default function Navbar() {
                 className="block px-4 py-3 text-lg font-medium text-gray-700 hover:text-violet-600 hover:bg-violet-50 rounded-xl transition-colors"
             >
               Events
+            </Link>
+             <Link 
+                href="/pricing" 
+                onClick={() => setIsOpen(false)}
+                className="block px-4 py-3 text-lg font-medium text-gray-700 hover:text-violet-600 hover:bg-violet-50 rounded-xl transition-colors"
+            >
+              Pricing
+            </Link>
+             <Link 
+                href="/help" 
+                onClick={() => setIsOpen(false)}
+                className="block px-4 py-3 text-lg font-medium text-gray-700 hover:text-violet-600 hover:bg-violet-50 rounded-xl transition-colors"
+            >
+              Help Center
             </Link>
              <Link 
                 href="/contact" 

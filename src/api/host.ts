@@ -10,7 +10,6 @@ export const hostApi = {
 
     async getEventDetails(id: string): Promise<HostEventDetails> {
         const response = await client.get<ApiResponse<HostEventDetails>>(`/user/host/events/${id}`);
-        console.log(response);
         return response.data.data;
     },
 

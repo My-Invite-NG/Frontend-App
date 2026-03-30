@@ -1,6 +1,6 @@
 import adminClient from "./adminClient";
 import { ApiResponse, PaginatedResponse } from '@/types/api';
-import { User, Event, Ticket, Transaction, Category, TrustTier, TrustScoreSetting, AdminStats, AdminFinanceStats, SupportTicket, SupportMessage } from '@/types/models';
+import { User, Event, Ticket, Transaction, Category, TrustTier, TrustScoreSetting, AdminStats, AdminFinanceStats, SupportTicket, SupportMessage, ContactMessage } from '@/types/models';
 
 export const adminApi = {
   async login(credentials: any): Promise<{ token: string; user: User }> {
@@ -134,6 +134,28 @@ export const adminApi = {
     const response = await adminClient.put<ApiResponse<SupportTicket>>(`/admin/support/${id}/status`, {
       status,
     });
+    return response.data.data;
+  },
+  
+  // Contact Inquiries
+  // Contact Inquiries
+  // Contact Inquiries
+  async getContactMessages(params?: any): Promise<PaginatedResponse<ContactMessage>> {
+    const response = await adminClient.get<ApiResponse<PaginatedResponse<ContactMessage>>>("/admin/contact", { params });
+    return response.data.data;
+  },
+  async getContactMessage(id: string): Promise<ContactMessage> {
+    const response = await adminClient.get<ApiResponse<ContactMessage>>(`/admin/contact/${id}`);
+    return response.data.data;
+  },
+  async updateContactStatus(id: number | string, status: string): Promise<ContactMessage> {
+    const response = await adminClient.put<ApiResponse<ContactMessage>>(`/admin/contact/${id}/status`, {
+      status,
+    });
+    return response.data.data;
+  },
+  async deleteContactMessage(id: number | string): Promise<{ message: string }> {
+    const response = await adminClient.delete<ApiResponse<{ message: string }>>(`/admin/contact/${id}`);
     return response.data.data;
   },
   // Settings - Categories

@@ -17,7 +17,8 @@ import {
   Download,
   Search,
   CheckCircle2,
-  AlertCircle
+  AlertCircle,
+  Share2
 } from "lucide-react";
 import Link from "next/link";
 import WithdrawalLimitModal from "../../components/WithdrawalLimitModal";
@@ -153,6 +154,23 @@ export default function EventDetailsPage() {
     }
   };
 
+  const handleShare = () => {
+    if (!event) return;
+    const shareUrl = `${window.location.origin}/events/${event.slug}`;
+    const shareData = {
+      title: event.title,
+      text: `Check out ${event.title} on MyInvite!`,
+      url: shareUrl,
+    };
+
+    if (navigator.share) {
+      navigator.share(shareData).catch(console.error);
+    } else {
+      navigator.clipboard.writeText(shareUrl);
+      toast.success("Public event link copied to clipboard!");
+    }
+  };
+
   return (
     <div className="min-h-screen bg-background pb-20 pt-8 transition-colors">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -192,6 +210,9 @@ export default function EventDetailsPage() {
                 </div>
 
                 <div className="flex items-center gap-2">
+                     <Button variant="outline" onClick={handleShare} className="gap-2">
+                        <Share2 className="w-4 h-4" /> Share
+                     </Button>
                      <Link href={`/events/${event.slug}`} target="_blank">
                         <Button variant="outline" className="gap-2">
                             <ExternalLink className="w-4 h-4" /> View Page
