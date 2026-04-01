@@ -9,8 +9,10 @@ interface EventCardProps {
   title: string;
   location: string;
   date: string;
-  priceRange?: string; // Change to optional
-  tickets?: any[];     // Add tickets to props
+  image?: string;
+  priceRange?: string;
+  tickets?: any[];
+  category?: string;
   className?: string;
 }
 

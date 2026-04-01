@@ -174,7 +174,7 @@ export default function AdminReportsPage() {
                   boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)'
                 }}
                 itemStyle={{ color: 'hsl(var(--foreground))' }}
-                formatter={(value: number) => [formatCurrency(value), 'Revenue']}
+                formatter={(value: any) => [formatCurrency(value || 0), 'Revenue']}
               />
               <Area 
                 type="monotone" 

@@ -7,6 +7,11 @@ export function cn(...inputs: ClassValue[]) {
 
 export function formatCurrency(value: number | string): string {
     const amount = typeof value === 'string' ? parseFloat(value) : value;
+    
+    if (isNaN(amount)) {
+        return '₦0';
+    }
+
     return new Intl.NumberFormat('en-NG', {
         style: 'currency',
         currency: 'NGN',
@@ -17,6 +22,9 @@ export function formatCurrency(value: number | string): string {
 
 export function getPriceRange(event: any): string {
     if (!event) return 'Free';
+    
+    // Check if event has a pre-formatted price range
+    if (event.price_range) return event.price_range;
     
     if (event.free || (event.tickets && event.tickets.length > 0 && event.tickets.every((t: any) => parseFloat(t.price) === 0))) {
         return 'Free';
