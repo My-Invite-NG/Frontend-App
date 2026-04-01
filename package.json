@@ -12,7 +12,7 @@
     "@react-google-maps/api": "^2.20.8",
     "@types/js-cookie": "^3.0.6",
     "@vercel/analytics": "^1.6.1",
-    "axios": "^1.13.2",
+    "axios": "1.13.2",
     "clsx": "^2.1.1",
     "date-fns": "^4.1.0",
     "dojah-kyc-sdk-react": "^0.0.5",
