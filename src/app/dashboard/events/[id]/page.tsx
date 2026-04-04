@@ -19,6 +19,7 @@ import {
   CheckCircle2,
   AlertCircle,
   Share2,
+  QrCode,
 } from "lucide-react";
 import Link from "next/link";
 import WithdrawalLimitModal from "../../components/WithdrawalLimitModal";
@@ -232,7 +233,8 @@ export default function EventDetailsPage() {
                 </div>
               </div>
             </div>
-
+            
+            <div className="flex items-center gap-3">
               <Link href={`${event.id}/check-in`}>
                 <Button className="gap-2 bg-emerald-600 hover:bg-emerald-700 text-white">
                   <QrCode className="w-4 h-4" /> Check-in

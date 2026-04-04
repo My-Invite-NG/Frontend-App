@@ -75,7 +75,7 @@ export default function CheckInPage() {
             </div>
             <div className="flex items-center gap-2">
                <Button
-                variant={isScanning ? "destructive" : "default"}
+                variant={isScanning ? "danger" : "primary"}
                 onClick={() => setIsScanning(!isScanning)}
                 className="gap-2"
                 disabled // Disabled until scanner library is confirmed
