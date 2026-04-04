@@ -52,5 +52,10 @@ export const hostApi = {
     async refundTicket(ticketId: string): Promise<{ message: string }> {
         const response = await client.post<ApiResponse<{ message: string }>>(`/user/host/tickets/${ticketId}/refund`);
         return response.data.data;
+    },
+
+    async checkInAttendee(ticketId: string): Promise<{ message: string }> {
+        const response = await client.post<ApiResponse<{ message: string }>>(`/user/host/tickets/${ticketId}/check-in`);
+        return response.data.data;
     }
 };

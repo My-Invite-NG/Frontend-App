@@ -2,6 +2,7 @@
 
 import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import {
   LayoutDashboard,
   Calendar,
@@ -36,13 +37,23 @@ export default function Sidebar({ onClose }: { onClose?: () => void }) {
     return (
       <div className="h-full flex flex-col bg-white dark:bg-gray-900 border-r border-gray-100 dark:border-gray-800 transition-colors">
         <div className="p-6 border-b border-gray-100 dark:border-gray-800">
-          <Link href="/" className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-violet-600 rounded-lg flex items-center justify-center text-white font-bold text-xl">
-              M
-            </div>
-            <span className="font-bold text-xl text-gray-900 dark:text-gray-100">
-              MyInvite
-            </span>
+          <Link href="/" className="flex items-center">
+            <Image
+              src="/Logos/web_logo_light_mode.png"
+              alt="MyInvite"
+              width={130}
+              height={40}
+              className="block dark:hidden"
+              priority
+            />
+            <Image
+              src="/Logos/web_logo_dark_mode.png"
+              alt="MyInvite"
+              width={130}
+              height={40}
+              className="hidden dark:block"
+              priority
+            />
           </Link>
         </div>
 

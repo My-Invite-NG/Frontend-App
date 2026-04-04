@@ -1,13 +1,10 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { Search, ShoppingCart, Menu, X } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
-
-// Simple utility if @/lib/utils is not yet created, I'll create it next.
-// For now I'll assume standard tw-merge setup or inline it if I must. 
-// Actually, I'll create the lib/utils first in the same turn to be safe.
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
@@ -18,8 +15,23 @@ export default function Navbar() {
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <div className="flex-shrink-0 flex items-center">
-            <Link href="/" className="text-2xl font-bold text-violet-600 font-serif italic">
-              Logo
+            <Link href="/">
+              <Image
+                src="/Logos/web_logo_light_mode.png"
+                alt="MyInvite"
+                width={130}
+                height={40}
+                className="block dark:hidden"
+                priority
+              />
+              <Image
+                src="/Logos/web_logo_dark_mode.png"
+                alt="MyInvite"
+                width={130}
+                height={40}
+                className="hidden dark:block"
+                priority
+              />
             </Link>
           </div>
 

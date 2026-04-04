@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 import {
@@ -76,18 +77,26 @@ export default function AdminSidebar({ isOpen, onClose }: SidebarProps) {
         md:translate-x-0 md:static md:flex shrink-0
       `}>
         <div className="p-6 border-b border-border flex items-center justify-between">
-          <Link href="/admin" className="flex items-center gap-3 group">
-            <div className="w-10 h-10 bg-primary/10 rounded-xl flex items-center justify-center group-hover:bg-primary/20 transition-colors">
-              <ShieldCheck className="w-6 h-6 text-primary" />
-            </div>
-            <div>
-              <h1 className="text-lg font-bold text-foreground leading-tight">
-                MyInvite
-              </h1>
-              <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
-                Admin Portal
-              </p>
-            </div>
+          <Link href="/admin" className="flex flex-col gap-1">
+            <Image
+              src="/Logos/web_logo_light_mode.png"
+              alt="MyInvite"
+              width={120}
+              height={38}
+              className="block dark:hidden"
+              priority
+            />
+            <Image
+              src="/Logos/web_logo_dark_mode.png"
+              alt="MyInvite"
+              width={120}
+              height={38}
+              className="hidden dark:block"
+              priority
+            />
+            <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
+              Admin Portal
+            </p>
           </Link>
           <button
             onClick={onClose}

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import Sidebar from "./components/Sidebar";
 import { Menu, X } from "lucide-react";
 
@@ -43,9 +44,22 @@ export default function DashboardLayout({
             >
               <Menu className="w-6 h-6" />
             </button>
-            <span className="font-bold text-lg text-gray-900 dark:text-gray-100">
-              MyInvite
-            </span>
+            <Image
+              src="/Logos/web_logo_light_mode.png"
+              alt="MyInvite"
+              width={100}
+              height={32}
+              className="block dark:hidden"
+              priority
+            />
+            <Image
+              src="/Logos/web_logo_dark_mode.png"
+              alt="MyInvite"
+              width={100}
+              height={32}
+              className="hidden dark:block"
+              priority
+            />
             <div className="w-10" /> {/* Spacer for centering */}
           </div>
 

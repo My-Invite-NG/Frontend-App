@@ -233,7 +233,11 @@ export default function EventDetailsPage() {
               </div>
             </div>
 
-            <div className="flex items-center gap-2">
+              <Link href={`${event.id}/check-in`}>
+                <Button className="gap-2 bg-emerald-600 hover:bg-emerald-700 text-white">
+                  <QrCode className="w-4 h-4" /> Check-in
+                </Button>
+              </Link>
               <Button variant="outline" onClick={handleShare} className="gap-2">
                 <Share2 className="w-4 h-4" /> Share
               </Button>
@@ -278,6 +282,12 @@ export default function EventDetailsPage() {
             >
               Ticket Types
             </button>
+            <Link
+              href={`${eventId}/check-in`}
+              className="pb-4 text-sm font-medium border-b-2 border-transparent text-muted-foreground hover:text-foreground transition-colors"
+            >
+              Check-in
+            </Link>
           </nav>
         </div>
 

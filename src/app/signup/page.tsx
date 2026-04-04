@@ -1,6 +1,7 @@
 "use client";
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { useState } from 'react';
 import { Eye, EyeOff } from "lucide-react";
 import { useRouter } from 'next/navigation';
@@ -56,25 +57,13 @@ export default function SignUpPage() {
         <Card>
           {/* Logo Section */}
           <div className="flex flex-col items-center mb-8">
-            <div className="w-12 h-12 bg-violet-100 dark:bg-violet-900/30 rounded-xl flex items-center justify-center mb-4 text-violet-600 dark:text-violet-400 shadow-sm shadow-violet-100 dark:shadow-none">
-              {/* Placeholder Logo */}
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="24"
-                height="24"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                className="lucide lucide-ticket"
-              >
-                <path d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z" />
-                <path d="M13 5v2" />
-                <path d="M13 17v2" />
-                <path d="M13 11v2" />
-              </svg>
+            <div className="mb-4">
+              <Image
+                src="/Logos/myinvite_55x49.png"
+                alt="MyInvite"
+                width={55}
+                height={49}
+              />
             </div>
             <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-100">
               Sign Up

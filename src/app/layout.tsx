@@ -19,6 +19,13 @@ export const metadata: Metadata = {
   keywords: ["events", "tickets", "concert", "party", "conference", "meetup", "Nigeria", "Lagos", "event management"],
   authors: [{ name: "MyInvite" }],
   creator: "MyInvite",
+  icons: {
+    icon: [
+      { url: '/Logos/mi_regular.png', sizes: '32x32', type: 'image/png' },
+      // { url: '/Logos/myinvite_37x33.png', sizes: '32x32', type: 'image/png' },
+    ],
+    apple: '/Logos/mi_regular.png',
+  },
   openGraph: {
     type: "website",
     locale: "en_NG",
@@ -26,11 +33,20 @@ export const metadata: Metadata = {
     title: "MyInvite - Find Your Next Experience",
     description: "Discover thousands of events happening near you and around the world.",
     url: "/",
+    images: [
+      {
+        url: "/Logos/myinvite_579x519.png",
+        width: 579,
+        height: 519,
+        alt: "MyInvite Logo",
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
     title: "MyInvite - Find Your Next Experience",
     description: "Discover thousands of events happening near you and around the world.",
+    images: ["/Logos/myinvite_579x519.png"],
   },
   robots: {
     index: true,

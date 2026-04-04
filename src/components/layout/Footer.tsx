@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { Instagram, Facebook, Linkedin, Twitter } from "lucide-react";
 
 export default function Footer() {
@@ -9,8 +10,13 @@ export default function Footer() {
             
             {/* Brand */}
             <div>
-                <Link href="/" className="text-2xl font-bold text-white font-serif italic mb-6 block">
-                  MyInvite
+                <Link href="/" className="mb-6 inline-block">
+                  <Image
+                    src="/Logos/web_logo_dark_mode.png"
+                    alt="MyInvite"
+                    width={130}
+                    height={42}
+                  />
                 </Link>
                 <p className="text-sm text-slate-400 mb-6">
                     Transforming how people discover, book, and experience events worldwide.
