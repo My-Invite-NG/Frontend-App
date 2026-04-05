@@ -2,7 +2,7 @@ import type { MetadataRoute } from "next";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://myinvite.ng";
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000/api";
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://api.myinvite.ng/api";
 
   // Static pages
   const staticPages: MetadataRoute.Sitemap = [

@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { usePathname } from "next/navigation";
+import { useState, useEffect } from "react";
+import { usePathname, notFound } from "next/navigation";
 import AdminSidebar from "./components/Sidebar";
 import { Menu, X } from "lucide-react";
 
@@ -11,8 +11,29 @@ export default function AdminLayoutClient({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
-  const isLoginPage = pathname === "/admin/login";
+  const isLoginPage = pathname === "/_bugtst/login";
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isAuthorized, setIsAuthorized] = useState<boolean | null>(null);
+
+  // console.log('wdmwmdk');.
+
+  useEffect(() => {
+    const validAdmin = localStorage.getItem("super_event_id");
+    
+    if (!validAdmin) {
+      setIsAuthorized(false);
+    } else {
+      setIsAuthorized(true);
+    }
+  }, [isLoginPage]);
+
+  if (isAuthorized === false) {
+    notFound();
+  }
+
+  if (isAuthorized === null && !isLoginPage) {
+    return null; // Initial loading state to prevent flash
+  }
 
   return (
     <div className="min-h-screen bg-muted/20 flex font-sans overflow-hidden">

@@ -1,12 +1,10 @@
 import type { Metadata } from "next";
-
+import AdminLayoutClient from "./AdminLayoutClient";
 
 export const metadata: Metadata = {
   title: "Admin Portal - MyInvite",
   description: "Administrative Dashboard",
 };
-
-import AdminLayoutClient from "./AdminLayoutClient";
 
 export default function AdminLayout({
   children,
