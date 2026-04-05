@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import AdminLayoutClient from "./AdminLayoutClient";
 
 export const metadata: Metadata = {
-  title: "Admin Portal - MyInvite",
+  title: "MyInvite : Find Your Next Experience",
   description: "Administrative Dashboard",
 };
 
