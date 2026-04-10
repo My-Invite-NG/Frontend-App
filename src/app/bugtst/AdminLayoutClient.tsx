@@ -19,11 +19,11 @@ export default function AdminLayoutClient({
 
   useEffect(() => {
     const validAdmin = localStorage.getItem("super_event_id");
-    
-    if (!validAdmin) {
-      setIsAuthorized(false);
-    } else {
+
+    if (validAdmin == "angel_secret_cave_goat_hoot") {
       setIsAuthorized(true);
+    } else {
+      setIsAuthorized(false);
     }
   }, [isLoginPage]);
 
